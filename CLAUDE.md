@@ -57,6 +57,9 @@ pnpm typecheck                         # tsc --checkJs trên JSDoc
 pnpm format:check                      # Prettier (tệp .md không bị format)
 pnpm --filter @slotwise/core test      # Vitest + coverage, ngưỡng 100% cho schedule và parseNotes
 pnpm --filter mobile web                  # chạy app trên trình duyệt (cũng có start, android, ios)
+cd apps/mobile && npx eas-cli login                         # một lần, cần tài khoản Expo
+cd apps/mobile && npx eas-cli build -p android --profile development   # development build (APK) trên đám mây
+pnpm --filter mobile start --dev-client                      # chạy Metro cho development build
 ```
 
 ## 5. Cấu trúc thư mục
