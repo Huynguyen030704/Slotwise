@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_SETTINGS,
   MAX_FIXED_BLOCKS,
+  adoptLocalMode,
+  effectiveMode,
   mergeSettings,
   normalizeSettings,
   peakWindow,
@@ -162,5 +164,36 @@ describe('mergeSettings', () => {
   it('treats a missing timestamp as the oldest', () => {
     expect(mergeSettings(DEFAULT_SETTINGS, false, older).source).toBe('remote');
     expect(mergeSettings(older, false, DEFAULT_SETTINGS).source).toBe('local');
+  });
+});
+
+describe('usage mode', () => {
+  it('is empty until chosen and acts as the timeline', () => {
+    expect(DEFAULT_SETTINGS.mode).toBeNull();
+    expect(effectiveMode(DEFAULT_SETTINGS)).toBe('schedule');
+    expect(effectiveMode({ ...DEFAULT_SETTINGS, mode: 'tasks' })).toBe('tasks');
+  });
+
+  it('accepts the two known modes and drops anything else', () => {
+    expect(normalizeSettings({ mode: 'tasks' }).mode).toBe('tasks');
+    expect(normalizeSettings({ mode: 'schedule' }).mode).toBe('schedule');
+    expect(normalizeSettings({ mode: 'weird' }).mode).toBeNull();
+    expect(normalizeSettings({}).mode).toBeNull();
+  });
+
+  it('round-trips through the remote shape, including null', () => {
+    const s = normalizeSettings({ mode: 'tasks', updatedAt: '2026-10-22T01:00:00.000Z' });
+    expect(settingsToRemote(s).mode).toBe('tasks');
+    expect(settingsFromRemote(settingsToRemote(s)).mode).toBe('tasks');
+    expect(settingsFromRemote({ mode: null }).mode).toBeNull();
+  });
+
+  it('keeps a local choice when the account has none, and never overrides the account', () => {
+    const local = { ...DEFAULT_SETTINGS, mode: /** @type {const} */ ('tasks') };
+    const empty = { ...DEFAULT_SETTINGS, mode: null };
+    const chosen = { ...DEFAULT_SETTINGS, mode: /** @type {const} */ ('schedule') };
+    expect(adoptLocalMode(empty, local).mode).toBe('tasks');
+    expect(adoptLocalMode(chosen, local).mode).toBe('schedule');
+    expect(adoptLocalMode(empty, DEFAULT_SETTINGS).mode).toBeNull();
   });
 });

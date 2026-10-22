@@ -1,6 +1,6 @@
 export default {
   app: { name: 'Slotwise', tagline: 'Lên kế hoạch cho ngày của bạn, thật khôn ngoan.' },
-  tabs: { list: 'Danh sách', calendar: 'Lịch ngày' },
+  tabs: { list: 'Danh sách', calendar: 'Lịch ngày', today: 'Hôm nay' },
   settings: {
     switchToDark: 'Chuyển sang chế độ tối',
     switchToLight: 'Chuyển sang chế độ sáng',
@@ -49,6 +49,8 @@ export default {
     pinToTime: 'Ghim vào giờ…',
     unpin: 'Bỏ ghim giờ',
     scheduleTomorrow: 'Dời sang ngày mai',
+    doToday: 'Làm hôm nay',
+    later: 'Để sau',
   },
   edit: {
     title: 'Sửa việc',
@@ -79,6 +81,7 @@ export default {
     formTitle: 'Chào mừng bạn',
     formSubtitle: 'Đăng nhập để đồng bộ việc giữa điện thoại và máy tính.',
     skip: 'Dùng thử, chưa cần tài khoản',
+    modeHint: 'Chọn cách dùng, đổi lại được sau.',
     skipHint: 'Việc được lưu ngay trên máy này. Bạn có thể đăng nhập sau trong mục Tài khoản.',
     props: {
       plan: {
@@ -186,7 +189,32 @@ export default {
     blockDeleteLabel: 'Xóa “{{name}}”',
     blockDeleted: 'Đã xóa “{{name}}”',
     kind: { lunch: 'Nghỉ', meeting: 'Họp' },
+    modeTitle: 'Cách dùng',
+    modeOnlyNote:
+      'Giờ làm việc, giờ tỉnh táo và khung giờ cố định chỉ dùng khi xếp việc theo giờ. Bạn có thể bật lại bất cứ lúc nào.',
     syncNote: 'Khi đăng nhập, thiết lập đi theo tài khoản và đồng bộ giữa các thiết bị.',
+  },
+  mode: {
+    title: 'Bạn muốn dùng Slotwise thế nào?',
+    hint: 'Bạn có thể đổi lại bất cứ lúc nào trong Thiết lập.',
+    schedule: {
+      title: 'Xếp việc theo giờ',
+      body: 'Slotwise tự xếp việc vào khung giờ trống, đúng lúc bạn tỉnh táo.',
+    },
+    tasks: {
+      title: 'Chỉ quản lý việc',
+      body: 'Danh sách việc theo Hôm nay, Ngày mai, Sau này. Không cần giờ giấc.',
+    },
+  },
+  today: {
+    title: 'Hôm nay',
+    empty:
+      'Hôm nay chưa có việc nào. Thêm việc ở danh sách, hoặc chọn “Làm hôm nay” trong menu của một việc.',
+    sectionToday: 'Hôm nay',
+    sectionDone: 'Đã xong hôm nay',
+    sectionTomorrow: 'Ngày mai',
+    sectionLater: 'Sau này',
+    emptySection: 'Chưa có việc nào.',
   },
   focus: {
     title: 'Chế độ tập trung',

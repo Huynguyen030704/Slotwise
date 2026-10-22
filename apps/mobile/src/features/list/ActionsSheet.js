@@ -3,7 +3,9 @@ import {
   ArrowDown,
   ArrowUp,
   CalendarArrowDown,
+  CalendarCheck,
   Check,
+  Clock,
   CornerDownRight,
   FolderInput,
   Pencil,
@@ -50,13 +52,15 @@ function Item({ icon, label, onPress, danger }) {
  *   nodes: import('@slotwise/core/types.js').TreeNode[],
  *   onClose: () => void,
  *   onRename: () => void,
- *   onEdit: () => void,
+ *   onEdit?: () => void,
  *   onAddSubtask?: () => void,
  *   onDelete: () => void,
  *   onMove?: (target: import('@slotwise/core/tree.js').DropTarget) => void,
  *   onPin?: () => void,
  *   onUnpin?: () => void,
  *   onTomorrow?: () => void,
+ *   onToday?: () => void,
+ *   onLater?: () => void,
  *   done?: boolean,
  *   onToggleDone?: () => void,
  * }} props
@@ -73,6 +77,8 @@ export function ActionsSheet({
   onPin,
   onUnpin,
   onTomorrow,
+  onToday,
+  onLater,
   done,
   onToggleDone,
 }) {
@@ -107,7 +113,7 @@ export function ActionsSheet({
         />
       ) : null}
       <Item icon={<Pencil {...ic} />} label={t('actions.rename')} onPress={run(onRename)} />
-      {leaf ? (
+      {leaf && onEdit ? (
         <Item
           icon={<SlidersHorizontal {...ic} />}
           label={t('actions.edit')}
@@ -120,12 +126,22 @@ export function ActionsSheet({
       {leaf && node.pinnedStartMin !== null && onUnpin ? (
         <Item icon={<PinOff {...ic} />} label={t('actions.unpin')} onPress={run(onUnpin)} />
       ) : null}
+      {leaf && onToday ? (
+        <Item
+          icon={<CalendarCheck {...ic} />}
+          label={t('actions.doToday')}
+          onPress={run(onToday)}
+        />
+      ) : null}
       {leaf && onTomorrow ? (
         <Item
           icon={<CalendarArrowDown {...ic} />}
           label={t('actions.scheduleTomorrow')}
           onPress={run(onTomorrow)}
         />
+      ) : null}
+      {leaf && onLater ? (
+        <Item icon={<Clock {...ic} />} label={t('actions.later')} onPress={run(onLater)} />
       ) : null}
       {node.kind === 'task' && onAddSubtask ? (
         <Item

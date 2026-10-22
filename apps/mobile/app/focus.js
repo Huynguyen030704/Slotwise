@@ -6,6 +6,8 @@ import { Check, Pause, Play, RotateCcw, SkipForward } from '../src/ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useNodes } from '../src/data/NodesProvider';
 import { localDate } from '../src/data/time';
+import { useSettings } from '../src/data/SettingsProvider';
+import { taskBuckets } from '@slotwise/core';
 import { formatClock, formatDuration } from '../src/lib/format';
 import { AppText } from '../src/ui/AppText';
 import { Button } from '../src/ui/Button';
@@ -25,14 +27,18 @@ export default function FocusScreen() {
   const router = useRouter();
   const api = useNodes();
   const { plan } = useDayPlan(localDate());
+  const { mode } = useSettings();
+  const byClock = mode === 'schedule';
 
-  /** Open tasks of today in time order. */
+  /** Open tasks of today: in time order on the timeline, in list order without a clock. */
   const queue = useMemo(
     () =>
-      plan.tasks
-        .filter((n) => plan.slots[n.id] !== undefined)
-        .sort((a, b) => plan.slots[a.id] - plan.slots[b.id]),
-    [plan],
+      byClock
+        ? plan.tasks
+            .filter((n) => plan.slots[n.id] !== undefined)
+            .sort((a, b) => plan.slots[a.id] - plan.slots[b.id])
+        : taskBuckets(api.nodes, localDate()).today,
+    [byClock, plan, api.nodes],
   );
   const [index, setIndex] = useState(0);
   const current = queue.length ? queue[Math.min(index, queue.length - 1)] : null;
@@ -83,7 +89,7 @@ export default function FocusScreen() {
     );
   }
 
-  const start0 = plan.slots[current.id];
+  const start0 = byClock ? plan.slots[current.id] : null;
   const n = queue.length;
   const i = Math.min(index, n - 1) + 1;
 
@@ -109,8 +115,10 @@ export default function FocusScreen() {
         }}
       >
         <AppText tone="muted" size={13}>
-          {t('focus.position', { i, n })} · {t('focus.planned', { time: formatClock(start0) })} ·{' '}
-          {formatDuration(current.durationMin, t)}
+          {t('focus.position', { i, n })}
+          {start0 !== null
+            ? ` · ${t('focus.planned', { time: formatClock(start0) })} · ${formatDuration(current.durationMin, t)}`
+            : ''}
         </AppText>
         <AppText weight="heading" size={30} accessibilityRole="header">
           {current.title}

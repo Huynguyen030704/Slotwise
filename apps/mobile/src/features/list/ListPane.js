@@ -16,6 +16,7 @@ import { dropTargetAt, isDone, isLeaf, progress, visibleRows } from '@slotwise/c
 import { useNodes } from '../../data/NodesProvider';
 import { localDate } from '../../data/time';
 import { addDays } from '../../lib/dates';
+import { useSettings } from '../../data/SettingsProvider';
 import { dragCancel, dragDrop, dragHover, dragStart } from '../../lib/dragBus';
 import { TopBar } from '../../ui/TopBar';
 import { AppText } from '../../ui/AppText';
@@ -50,6 +51,8 @@ export function ListPane({ embedded = false }) {
   const router = useRouter();
   const api = useNodes();
   const { nodes } = api;
+  const { mode } = useSettings();
+  const byClock = mode === 'schedule';
 
   const [target, setTarget] = useState(/** @type {string | null} */ (null));
   const [menu, setMenu] = useState(/** @type {string | null} */ (null));
@@ -405,6 +408,7 @@ export function ListPane({ embedded = false }) {
                   hasChildren={hasChildren}
                   done={done}
                   leading={gripFor(node)}
+                  hideMeta={!byClock}
                   onToggleDone={() => api.setTaskDone(node.id, !done)}
                   onToggleCollapse={() => api.toggleCollapsed(node.id)}
                   onMore={() => setMenu(node.id)}
@@ -433,11 +437,17 @@ export function ListPane({ embedded = false }) {
         nodes={nodes}
         onClose={() => setMenu(null)}
         onRename={() => setRenaming(menu)}
-        onEdit={() => setEditing(menu)}
+        onEdit={byClock ? () => setEditing(menu) : undefined}
         onAddSubtask={() => setSubtaskOf(menu)}
         onMove={(dropTarget) => menu && api.move(menu, dropTarget)}
-        onPin={() => setPinning(menu)}
-        onUnpin={() => menu && api.update(menu, { pinnedStartMin: null })}
+        onPin={byClock ? () => setPinning(menu) : undefined}
+        onUnpin={byClock ? () => menu && api.update(menu, { pinnedStartMin: null }) : undefined}
+        onToday={
+          byClock || menuNode?.scheduledDate === localDate()
+            ? undefined
+            : () => menu && api.update(menu, { scheduledDate: localDate() })
+        }
+        onLater={byClock ? undefined : () => menu && api.update(menu, { scheduledDate: null })}
         onTomorrow={() =>
           menu &&
           api.update(menu, {

@@ -14,10 +14,11 @@ export function TopBar({ title, extra }) {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexWrap: 'wrap',
         gap: spacing.sm,
       }}
     >
-      <AppText accessibilityRole="header" weight="heading" size={26} style={{ flex: 1 }}>
+      <AppText accessibilityRole="header" weight="heading" size={26} style={{ flexGrow: 1 }}>
         {title}
       </AppText>
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>

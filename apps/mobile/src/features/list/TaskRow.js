@@ -27,6 +27,8 @@ import { formatClock, formatDuration } from '../../lib/format';
  *   onToggleCollapse: () => void,
  *   onMore: () => void,
  *   leading?: import('react').ReactNode,
+ *   hideMeta?: boolean,
+ *   subtitle?: string,
  * }} props
  */
 export function TaskRow({
@@ -38,6 +40,8 @@ export function TaskRow({
   onToggleCollapse,
   onMore,
   leading,
+  hideMeta = false,
+  subtitle,
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -106,7 +110,12 @@ export function TaskRow({
         >
           {node.title}
         </AppText>
-        {!hasChildren ? (
+        {subtitle ? (
+          <AppText size={13} tone="muted">
+            {subtitle}
+          </AppText>
+        ) : null}
+        {!hasChildren && !hideMeta ? (
           <View
             style={{
               flexDirection: 'row',

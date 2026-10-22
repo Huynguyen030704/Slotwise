@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { AppState, Platform } from 'react-native';
 import {
+  adoptLocalMode,
   mergeRemote,
   mergeSettings,
   nodeToRemote,
@@ -111,7 +112,15 @@ async function syncSettings(uid, get) {
   if (data) {
     const remote = settingsFromRemote(data);
     if (mergeSettings(mine.settings, mine.dirty, remote).source === 'remote') {
-      mine.applyRemote(remote);
+      // The account has no mode yet but this device already has one: keep it and tell the account.
+      const adopted = adoptLocalMode(remote, mine.settings);
+      mine.applyRemote(adopted);
+      if (adopted.mode !== remote.mode) {
+        const { error: modeError } = await supabase
+          .from('user_settings')
+          .upsert({ user_id: uid, mode: adopted.mode }, { onConflict: 'user_id' });
+        if (modeError) throw modeError;
+      }
       return;
     }
   }

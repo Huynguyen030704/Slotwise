@@ -37,9 +37,12 @@ export {
   GRID,
   MAX_FIXED_BLOCKS,
   MIN_WORK_SPAN,
+  adoptLocalMode,
+  effectiveMode,
   mergeSettings,
   normalizeSettings,
   peakWindow,
   settingsFromRemote,
   settingsToRemote,
 } from './settings.js';
+export { taskBuckets } from './buckets.js';

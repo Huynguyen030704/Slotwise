@@ -51,3 +51,4 @@ export { default as Users } from 'lucide-react-native/icons/users';
 export { default as Wind } from 'lucide-react-native/icons/wind';
 export { default as Zap } from 'lucide-react-native/icons/zap';
 export { default as Settings } from 'lucide-react-native/icons/settings';
+export { default as Clock } from 'lucide-react-native/icons/clock';

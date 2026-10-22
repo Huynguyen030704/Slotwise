@@ -14,12 +14,15 @@
  * @property {number} endMin
  */
 
+/** @typedef {'schedule' | 'tasks'} UsageMode timeline with clock times, or plain task lists with no clock */
+
 /**
  * @typedef {object} DaySettings
  * @property {number} workStartMin
  * @property {number} workEndMin
  * @property {'morning' | 'afternoon'} peak
  * @property {FixedBlockDef[]} fixedBlocks
+ * @property {UsageMode | null} mode how the person uses the app; null until they choose (acts as the timeline)
  * @property {string | null} updatedAt ISO UTC of the last edit, null while untouched
  */
 
@@ -37,8 +40,18 @@ export const DEFAULT_SETTINGS = {
   workEndMin: 1080,
   peak: 'morning',
   fixedBlocks: DEFAULT_FIXED_BLOCKS,
+  mode: null,
   updatedAt: null,
 };
+
+/**
+ * The mode in effect: people who have not chosen yet get the timeline.
+ * @param {DaySettings} s
+ * @returns {UsageMode}
+ */
+export function effectiveMode(s) {
+  return s.mode ?? 'schedule';
+}
 
 const PEAK_WINDOWS = {
   morning: { startMin: 480, endMin: 720 },
@@ -101,6 +114,7 @@ export function normalizeSettings(raw) {
     workEndMin,
     peak: r.peak === 'afternoon' ? 'afternoon' : 'morning',
     fixedBlocks: cleanBlocks(r.fixedBlocks),
+    mode: r.mode === 'tasks' || r.mode === 'schedule' ? r.mode : null,
     updatedAt: typeof r.updatedAt === 'string' ? r.updatedAt : null,
   };
 }
@@ -130,6 +144,7 @@ export function settingsToRemote(s) {
     work_end_min: s.workEndMin,
     peak: s.peak,
     fixed_blocks: s.fixedBlocks,
+    mode: s.mode,
     updated_at: s.updatedAt ?? new Date(0).toISOString(),
   };
 }
@@ -144,6 +159,7 @@ export function settingsFromRemote(row) {
     workEndMin: row.work_end_min,
     peak: row.peak,
     fixedBlocks: row.fixed_blocks,
+    mode: row.mode,
     updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null,
   });
 }
@@ -162,4 +178,16 @@ export function mergeSettings(local, localDirty, remote) {
   const l = local.updatedAt ? Date.parse(local.updatedAt) : 0;
   const r = remote.updatedAt ? Date.parse(remote.updatedAt) : 0;
   return r > l ? { settings: remote, source: 'remote' } : { settings: local, source: 'local' };
+}
+
+/**
+ * The server row is created with `mode` empty. When the person already picked a mode on this device
+ * (for example on the welcome screen) and the account has none, keep the local choice instead of
+ * letting an empty value erase it.
+ * @param {DaySettings} remote
+ * @param {DaySettings} local
+ * @returns {DaySettings}
+ */
+export function adoptLocalMode(remote, local) {
+  return remote.mode === null && local.mode !== null ? { ...remote, mode: local.mode } : remote;
 }

@@ -1,6 +1,6 @@
 export default {
   app: { name: 'Slotwise', tagline: 'Plan your day, wisely.' },
-  tabs: { list: 'List', calendar: 'Day' },
+  tabs: { list: 'List', calendar: 'Day', today: 'Today' },
   settings: {
     switchToDark: 'Switch to dark mode',
     switchToLight: 'Switch to light mode',
@@ -49,6 +49,8 @@ export default {
     pinToTime: 'Pin to a time…',
     unpin: 'Unpin time',
     scheduleTomorrow: 'Move to tomorrow',
+    doToday: 'Do today',
+    later: 'Do later',
   },
   edit: {
     title: 'Edit task',
@@ -79,6 +81,7 @@ export default {
     formTitle: 'Welcome',
     formSubtitle: 'Sign in to sync your tasks between phone and computer.',
     skip: 'Try it without an account',
+    modeHint: 'Choose how you work, you can change it later.',
     skipHint: 'Your tasks are saved on this device. You can sign in later under Account.',
     props: {
       plan: {
@@ -187,7 +190,31 @@ export default {
     blockDeleteLabel: 'Delete “{{name}}”',
     blockDeleted: 'Deleted “{{name}}”',
     kind: { lunch: 'Break', meeting: 'Meeting' },
+    modeTitle: 'How you use it',
+    modeOnlyNote:
+      'Working hours, sharp hours and recurring blocks only apply when planning by the clock. You can turn it back on any time.',
     syncNote: 'When you sign in, settings follow your account and sync between devices.',
+  },
+  mode: {
+    title: 'How do you want to use Slotwise?',
+    hint: 'You can change this any time in Settings.',
+    schedule: {
+      title: 'Plan tasks by the clock',
+      body: 'Slotwise fits tasks into free time, when you are sharpest.',
+    },
+    tasks: {
+      title: 'Just manage tasks',
+      body: 'Task lists for Today, Tomorrow and Later. No clock needed.',
+    },
+  },
+  today: {
+    title: 'Today',
+    empty: 'Nothing for today yet. Add a task in the list, or choose “Do today” in a task’s menu.',
+    sectionToday: 'Today',
+    sectionDone: 'Done today',
+    sectionTomorrow: 'Tomorrow',
+    sectionLater: 'Later',
+    emptySection: 'Nothing here.',
   },
   focus: {
     title: 'Focus mode',

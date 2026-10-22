@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { DEFAULT_SETTINGS, normalizeSettings } from '@slotwise/core';
+import { DEFAULT_SETTINGS, effectiveMode, normalizeSettings } from '@slotwise/core';
 import { getSetting, setSetting } from './db';
 
 /** @typedef {import('@slotwise/core/settings.js').DaySettings} DaySettings */
@@ -21,6 +21,8 @@ import { getSetting, setSetting } from './db';
  * @property {(patch: Partial<Omit<DaySettings, 'updatedAt'>>) => void} update validate, save, mark for sync
  * @property {(remote: DaySettings) => void} applyRemote take the account's copy (after a sync)
  * @property {() => void} markClean the account now has this device's copy
+ * @property {import('@slotwise/core/settings.js').UsageMode} mode the mode in effect (timeline until the person chooses)
+ * @property {(m: import('@slotwise/core/settings.js').UsageMode) => void} presetMode remember a choice made before signing in (welcome screen); an account's own mode still wins
  * @property {Peak} peak shortcut for settings.peak
  * @property {(p: Peak) => void} setPeak
  * @property {boolean} welcomeSeen the user has already passed the welcome / sign-in screen
@@ -36,6 +38,7 @@ export function SettingsProvider({ children }) {
   const [dirty, setDirty] = useState(false);
   const [welcomeSeen, setWelcomeSeen] = useState(false);
   const latest = useRef(settings);
+  const dirtyRef = useRef(false);
 
   useEffect(() => {
     let alive = true;
@@ -58,6 +61,7 @@ export function SettingsProvider({ children }) {
         const next = normalizeSettings(base);
         latest.current = next;
         setSettings(next);
+        dirtyRef.current = storedDirty === '1';
         setDirty(storedDirty === '1');
         setWelcomeSeen(welcome === '1');
       })
@@ -72,6 +76,7 @@ export function SettingsProvider({ children }) {
 
   const store = useCallback((/** @type {DaySettings} */ next, /** @type {boolean} */ isDirty) => {
     latest.current = next;
+    dirtyRef.current = isDirty;
     setSettings(next);
     setDirty(isDirty);
     setSetting('day_settings', JSON.stringify(next)).catch(() => {});
@@ -97,6 +102,15 @@ export function SettingsProvider({ children }) {
 
   const markClean = useCallback(() => store(latest.current, false), [store]);
 
+  // A first choice is kept as is: no new timestamp and no dirty flag, so signing in to an account
+  // that already has a mode lets the account win, while a brand new account adopts this choice.
+  const presetMode = useCallback(
+    (/** @type {import('@slotwise/core/settings.js').UsageMode} */ m) => {
+      store({ ...latest.current, mode: m }, dirtyRef.current);
+    },
+    [store],
+  );
+
   const setPeak = useCallback((/** @type {Peak} */ p) => update({ peak: p }), [update]);
 
   const markWelcomeSeen = useCallback(() => {
@@ -112,12 +126,25 @@ export function SettingsProvider({ children }) {
       update,
       applyRemote,
       markClean,
+      mode: effectiveMode(settings),
+      presetMode,
       peak: settings.peak,
       setPeak,
       welcomeSeen,
       markWelcomeSeen,
     }),
-    [ready, settings, dirty, update, applyRemote, markClean, setPeak, welcomeSeen, markWelcomeSeen],
+    [
+      ready,
+      settings,
+      dirty,
+      update,
+      applyRemote,
+      markClean,
+      presetMode,
+      setPeak,
+      welcomeSeen,
+      markWelcomeSeen,
+    ],
   );
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }

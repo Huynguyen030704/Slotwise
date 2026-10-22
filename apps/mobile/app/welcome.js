@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../src/data/AuthProvider';
 import { useSettings } from '../src/data/SettingsProvider';
 import { AuthForm } from '../src/features/auth/AuthForm';
+import { ModeCards } from '../src/features/mode/ModeCards';
 import { AppText } from '../src/ui/AppText';
 import { PrefButtons } from '../src/ui/PrefButtons';
 import { useTheme } from '../src/theme/ThemeProvider';
@@ -94,7 +95,7 @@ export default function WelcomeScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const auth = useAuth();
-  const { markWelcomeSeen } = useSettings();
+  const { markWelcomeSeen, mode, presetMode } = useSettings();
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
 
@@ -115,6 +116,13 @@ export default function WelcomeScreen() {
           {t('welcome.formTitle')}
         </AppText>
         <AppText tone="muted">{t('welcome.formSubtitle')}</AppText>
+      </View>
+      <View style={{ gap: spacing.sm }}>
+        <AppText weight="bodyBold">{t('mode.title')}</AppText>
+        <ModeCards value={mode} onChange={presetMode} />
+        <AppText size={13} tone="muted">
+          {t('mode.hint')}
+        </AppText>
       </View>
       {auth.configured ? (
         <AuthForm />

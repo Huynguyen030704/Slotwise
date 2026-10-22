@@ -8,6 +8,7 @@ import { MIN_WORK_SPAN, peakWindow } from '@slotwise/core';
 import { Coffee, Pencil, Plus, Trash2, Users } from '../src/ui/icons';
 import { useSettings } from '../src/data/SettingsProvider';
 import { BlockSheet } from '../src/features/settings/BlockSheet';
+import { ModeCards } from '../src/features/mode/ModeCards';
 import { AppText } from '../src/ui/AppText';
 import { Button } from '../src/ui/Button';
 import { IconButton } from '../src/ui/IconButton';
@@ -23,7 +24,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
-  const { settings, update } = useSettings();
+  const { settings, update, mode } = useSettings();
 
   const [editing, setEditing] = useState(
     /** @type {null | { block: import('@slotwise/core/settings.js').FixedBlockDef | null }} */ (
@@ -81,124 +82,142 @@ export default function SettingsScreen() {
 
         <View style={card}>
           <AppText accessibilityRole="header" weight="heading" size={18}>
-            {t('prefs.hours')}
+            {t('prefs.modeTitle')}
           </AppText>
-          <TimeStepper
-            label={t('prefs.workStart')}
-            value={settings.workStartMin}
-            min={0}
-            max={settings.workEndMin - MIN_WORK_SPAN}
-            onChange={(v) => update({ workStartMin: v })}
-          />
-          <TimeStepper
-            label={t('prefs.workEnd')}
-            value={settings.workEndMin}
-            min={settings.workStartMin + MIN_WORK_SPAN}
-            max={1440}
-            onChange={(v) => update({ workEndMin: v })}
-          />
-          <AppText size={13} tone="muted">
-            {t('prefs.hoursHint', { n: MIN_WORK_SPAN / 60 })}
-          </AppText>
+          <ModeCards value={mode} onChange={(m) => update({ mode: m })} />
+          {mode === 'tasks' ? (
+            <AppText size={13} tone="muted">
+              {t('prefs.modeOnlyNote')}
+            </AppText>
+          ) : null}
         </View>
 
-        <View style={card}>
-          <AppText accessibilityRole="header" weight="heading" size={18}>
-            {t('prefs.peak')}
-          </AppText>
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-            {PEAK_CHOICES.map((p) => {
-              const active = settings.peak === p;
-              return (
-                <Pressable
-                  key={p}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: active }}
-                  onPress={() => update({ peak: p })}
-                  style={{
-                    flex: 1,
-                    minHeight: 44,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: radius.md,
-                    borderWidth: active ? 2 : 1,
-                    borderColor: active ? colors.accent : colors.line,
-                    backgroundColor: colors.bg,
-                  }}
-                >
-                  <AppText weight={active ? 'bodyBold' : 'body'}>{t(`calendar.${p}`)}</AppText>
-                </Pressable>
-              );
-            })}
-          </View>
-          <AppText size={13} tone="muted">
-            {t('prefs.peakHint', {
-              from: formatClock(peak.startMin),
-              to: formatClock(peak.endMin),
-            })}
-          </AppText>
-        </View>
+        {mode === 'schedule' ? (
+          <>
+            <View style={card}>
+              <AppText accessibilityRole="header" weight="heading" size={18}>
+                {t('prefs.hours')}
+              </AppText>
+              <TimeStepper
+                label={t('prefs.workStart')}
+                value={settings.workStartMin}
+                min={0}
+                max={settings.workEndMin - MIN_WORK_SPAN}
+                onChange={(v) => update({ workStartMin: v })}
+              />
+              <TimeStepper
+                label={t('prefs.workEnd')}
+                value={settings.workEndMin}
+                min={settings.workStartMin + MIN_WORK_SPAN}
+                max={1440}
+                onChange={(v) => update({ workEndMin: v })}
+              />
+              <AppText size={13} tone="muted">
+                {t('prefs.hoursHint', { n: MIN_WORK_SPAN / 60 })}
+              </AppText>
+            </View>
 
-        <View style={card}>
-          <AppText accessibilityRole="header" weight="heading" size={18}>
-            {t('prefs.blocks')}
-          </AppText>
-          <AppText size={13} tone="muted">
-            {t('prefs.blocksHint')}
-          </AppText>
-          {blocks.length ? (
-            blocks.map((b) => {
-              const Icon = b.kind === 'lunch' ? Coffee : Users;
-              const name = b.label || t(`calendar.${b.kind}`);
-              return (
-                <View
-                  key={b.id}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: spacing.sm,
-                    borderWidth: 1,
-                    borderColor: colors.line,
-                    borderRadius: radius.md,
-                    paddingLeft: spacing.md,
-                    backgroundColor: colors.bg,
-                  }}
-                >
-                  <Icon size={18} color={colors.muted} />
-                  <View style={{ flex: 1, paddingVertical: spacing.sm }}>
-                    <AppText weight="bodyMedium">{name}</AppText>
-                    <AppText size={13} tone="muted">
-                      {formatClock(b.startMin)}–{formatClock(b.endMin)}
-                    </AppText>
-                  </View>
-                  <IconButton
-                    label={t('prefs.blockEditLabel', { name })}
-                    onPress={() => setEditing({ block: b })}
-                  >
-                    <Pencil size={18} color={colors.ink} />
-                  </IconButton>
-                  <IconButton
-                    label={t('prefs.blockDeleteLabel', { name })}
-                    onPress={() => {
-                      update({ fixedBlocks: settings.fixedBlocks.filter((x) => x.id !== b.id) });
-                      setRemoved(b);
-                    }}
-                  >
-                    <Trash2 size={18} color={colors.danger} />
-                  </IconButton>
-                </View>
-              );
-            })
-          ) : (
-            <AppText tone="muted">{t('prefs.blocksEmpty')}</AppText>
-          )}
-          <Button
-            title={t('prefs.blockAdd')}
-            variant="secondary"
-            icon={<Plus size={18} color={colors.ink} />}
-            onPress={() => setEditing({ block: null })}
-          />
-        </View>
+            <View style={card}>
+              <AppText accessibilityRole="header" weight="heading" size={18}>
+                {t('prefs.peak')}
+              </AppText>
+              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                {PEAK_CHOICES.map((p) => {
+                  const active = settings.peak === p;
+                  return (
+                    <Pressable
+                      key={p}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: active }}
+                      onPress={() => update({ peak: p })}
+                      style={{
+                        flex: 1,
+                        minHeight: 44,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: radius.md,
+                        borderWidth: active ? 2 : 1,
+                        borderColor: active ? colors.accent : colors.line,
+                        backgroundColor: colors.bg,
+                      }}
+                    >
+                      <AppText weight={active ? 'bodyBold' : 'body'}>{t(`calendar.${p}`)}</AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <AppText size={13} tone="muted">
+                {t('prefs.peakHint', {
+                  from: formatClock(peak.startMin),
+                  to: formatClock(peak.endMin),
+                })}
+              </AppText>
+            </View>
+
+            <View style={card}>
+              <AppText accessibilityRole="header" weight="heading" size={18}>
+                {t('prefs.blocks')}
+              </AppText>
+              <AppText size={13} tone="muted">
+                {t('prefs.blocksHint')}
+              </AppText>
+              {blocks.length ? (
+                blocks.map((b) => {
+                  const Icon = b.kind === 'lunch' ? Coffee : Users;
+                  const name = b.label || t(`calendar.${b.kind}`);
+                  return (
+                    <View
+                      key={b.id}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: spacing.sm,
+                        borderWidth: 1,
+                        borderColor: colors.line,
+                        borderRadius: radius.md,
+                        paddingLeft: spacing.md,
+                        backgroundColor: colors.bg,
+                      }}
+                    >
+                      <Icon size={18} color={colors.muted} />
+                      <View style={{ flex: 1, paddingVertical: spacing.sm }}>
+                        <AppText weight="bodyMedium">{name}</AppText>
+                        <AppText size={13} tone="muted">
+                          {formatClock(b.startMin)}–{formatClock(b.endMin)}
+                        </AppText>
+                      </View>
+                      <IconButton
+                        label={t('prefs.blockEditLabel', { name })}
+                        onPress={() => setEditing({ block: b })}
+                      >
+                        <Pencil size={18} color={colors.ink} />
+                      </IconButton>
+                      <IconButton
+                        label={t('prefs.blockDeleteLabel', { name })}
+                        onPress={() => {
+                          update({
+                            fixedBlocks: settings.fixedBlocks.filter((x) => x.id !== b.id),
+                          });
+                          setRemoved(b);
+                        }}
+                      >
+                        <Trash2 size={18} color={colors.danger} />
+                      </IconButton>
+                    </View>
+                  );
+                })
+              ) : (
+                <AppText tone="muted">{t('prefs.blocksEmpty')}</AppText>
+              )}
+              <Button
+                title={t('prefs.blockAdd')}
+                variant="secondary"
+                icon={<Plus size={18} color={colors.ink} />}
+                onPress={() => setEditing({ block: null })}
+              />
+            </View>
+          </>
+        ) : null}
 
         <AppText size={13} tone="muted">
           {t('prefs.syncNote')}

@@ -119,7 +119,7 @@ Quy tắc nghiệp vụ trên cây:
 Các bảng Supabase (phác thảo, mọi bảng có RLS `user_id = auth.uid()`):
 
 - `profiles(user_id, display_name, locale, timezone)`
-- `user_settings(user_id, work_start_min, work_end_min, peak ('morning'|'afternoon'), buffer_min, grid_min, fixed_blocks jsonb)`: `fixed_blocks` là danh sách khung giờ cố định mỗi ngày `{id, kind: 'lunch'|'meeting', label?, startMin, endMin}`. Người dùng chỉnh trong màn Thiết lập (giờ làm việc, giờ tỉnh táo, khung giờ cố định), đồng bộ theo tài khoản.
+- `user_settings(user_id, work_start_min, work_end_min, peak ('morning'|'afternoon'), buffer_min, grid_min, fixed_blocks jsonb, mode ('schedule'|'tasks'|null))`: `fixed_blocks` là danh sách khung giờ cố định mỗi ngày `{id, kind: 'lunch'|'meeting', label?, startMin, endMin}`. Người dùng chỉnh trong màn Thiết lập (giờ làm việc, giờ tỉnh táo, khung giờ cố định), đồng bộ theo tài khoản. `mode` là cách dùng: `schedule` (xếp việc theo giờ, mặc định) hoặc `tasks` (chỉ quản lý việc: danh sách + màn Hôm nay/Ngày mai/Sau này, không giờ giấc), xem ADR 0004.
 - `tree_nodes(...)` như kiểu `TreeNode` ở trên.
 - `calendar_accounts(id, user_id, provider, encrypted_refresh_token, ...)`: token mã hóa, chỉ Edge Function đọc được.
 - `calendar_events(id, user_id, account_id, external_id, start_utc, end_utc, title_hash_or_title, is_busy, updated_at)`: cache sự kiện.
