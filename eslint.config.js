@@ -1,14 +1,21 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import jsdoc from 'eslint-plugin-jsdoc';
+import react from 'eslint-plugin-react';
 
 export default [
   { ignores: ['docs/prototype/**', 'coverage/**', 'node_modules/**', '**/dist/**'] },
   js.configs.recommended,
   {
-    languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: { ...globals.node } },
-    plugins: { jsdoc },
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      parserOptions: { ecmaFeatures: { jsx: true } },
+      globals: { ...globals.node, __DEV__: 'readonly' },
+    },
+    plugins: { jsdoc, react },
     rules: {
+      'react/jsx-uses-vars': 'error',
       'no-var': 'error',
       'prefer-const': 'error',
       eqeqeq: ['error', 'always'],

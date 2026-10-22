@@ -56,7 +56,7 @@ pnpm lint                              # ESLint
 pnpm typecheck                         # tsc --checkJs trên JSDoc
 pnpm format:check                      # Prettier (tệp .md không bị format)
 pnpm --filter @slotwise/core test      # Vitest + coverage, ngưỡng 100% cho schedule và parseNotes
-# apps/mobile (Expo) sẽ có từ Milestone 1: pnpm --filter mobile start
+pnpm --filter mobile web                  # chạy app trên trình duyệt (cũng có start, android, ios)
 ```
 
 ## 5. Cấu trúc thư mục

@@ -2,3 +2,4 @@ docs/prototype
 coverage
 pnpm-lock.yaml
 *.md
+apps/mobile/dist
