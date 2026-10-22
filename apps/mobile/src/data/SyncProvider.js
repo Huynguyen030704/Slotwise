@@ -53,8 +53,8 @@ async function pull(uid) {
     const { data, error } = await supabase
       .from('tree_nodes')
       .select('*')
-      .gte('synced_at', cursor)
-      .order('synced_at', { ascending: true })
+      .gte('server_updated_at', cursor)
+      .order('server_updated_at', { ascending: true })
       .order('id', { ascending: true })
       .limit(PAGE);
     if (error) throw error;
@@ -65,7 +65,7 @@ async function pull(uid) {
     );
     await saveNodes(accepted, { dirty: false });
     changed += accepted.length;
-    const last = data[data.length - 1].synced_at;
+    const last = data[data.length - 1].server_updated_at;
     const advanced = last !== cursor;
     cursor = last;
     await setSetting('sync_cursor', cursor);

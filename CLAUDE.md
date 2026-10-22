@@ -276,11 +276,11 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 **Hoàn thành khi:** dùng trọn một ngày làm việc được hoàn toàn offline, không mất dữ liệu khi tắt mở app.
 
 ### Milestone 2: Tài khoản và đồng bộ
-- [x] Migration `supabase/migrations/` (profiles, user_settings, tree_nodes, RLS, `push_tree_nodes`). **Chưa áp vào dự án Supabase**: cần `supabase login`, `link`, `db push` (xem `docs/supabase-setup.md`).
+- [x] Migration `supabase/migrations/` (profiles, user_settings, tree_nodes, RLS, `push_tree_nodes`). Đã link và `db push` lên dự án Slotwise (migration `20261022010000_sync.sql`).
 - [x] Đăng nhập Google và email trong app (mã đã viết, **chưa thử với Supabase thật**). Apple để sau.
 - [x] Đồng bộ đa thiết bị: kéo/đẩy theo `updated_at`, xóa mềm, gộp dữ liệu cục bộ lần đầu (logic gộp có test trong core). Ghi sau cùng thắng theo **từng dòng**, chưa theo từng trường (xem ADR 0003).
-- [x] Xuất dữ liệu JSON, xóa tài khoản (Edge Function `delete-account`, **chưa deploy**).
-- [ ] Cấu hình Google OAuth, áp migration, deploy function, thử trên hai thiết bị thật.
+- [x] Xuất dữ liệu JSON, xóa tài khoản (Edge Function `delete-account`, đã deploy).
+- [ ] Cấu hình Google OAuth (`docs/supabase-setup.md` mục 3), thử đồng bộ thật trên hai thiết bị.
 
 ### Milestone 3: Lịch ngoài
 - [ ] Google Calendar, Microsoft Outlook: lấy sự kiện làm khối bận, làm mới định kỳ.

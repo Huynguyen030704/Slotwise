@@ -6,9 +6,9 @@ Status: accepted (2026-10-22)
 
 - **Backend:** Supabase (Postgres, Auth, RLS, Edge Functions). Schema lives in `supabase/migrations/` and is applied with the Supabase CLI (`db push`).
 - **Sign-in:** Google first (OAuth with PKCE), email + password as a second option. Apple later.
-- **Tables:** `profiles`, `user_settings`, `tree_nodes`, all with RLS `user_id = auth.uid()`. New users get a profile and default settings from a trigger. Only `tree_nodes` is synced in M2; `user_settings` exists on the server for later (the peak window is still local).
+- **Tables:** `profiles`, `user_settings`, `tree_nodes` (plus `calendar_accounts`, `calendar_events` for M3), all with RLS `user_id = auth.uid()`. The hosted project already had this baseline (cursor column `server_updated_at`); `20261022000000_init.sql` documents it and `20261022010000_sync.sql` adds what sync needs: the missing `server_updated_at` triggers, dropping the `parent_id` foreign key (batches arrive in any order) and the `push_tree_nodes` RPC. New users get a profile and default settings from a trigger. Only `tree_nodes` is synced in M2; `user_settings` exists on the server for later (the peak window is still local).
 - **Sync model (offline-first):** SQLite stays the source the UI reads and writes. Each local row has a `dirty` flag (SQLite schema v2). A sync does:
-  1. **Pull:** rows with `synced_at >= cursor` (server clock, set by a trigger), ordered, in pages. Merge with `mergeRemote` in `packages/core`: a remote row replaces the local one only if its `updated_at` is strictly newer; otherwise the local row stays.
+  1. **Pull:** rows with `server_updated_at >= cursor` (server clock, set by a trigger), ordered, in pages. Merge with `mergeRemote` in `packages/core`: a remote row replaces the local one only if its `updated_at` is strictly newer; otherwise the local row stays.
   2. **Push:** all dirty rows in batches through the `push_tree_nodes` RPC, which upserts and only overwrites a stored row when the incoming `updated_at` is newer. Then `dirty` is cleared for rows not edited again meanwhile.
   3. If the pull changed anything, the UI reloads from SQLite.
 - **Triggers:** sign-in, local edits (debounced 3 s), app back to the foreground, network back (web).
@@ -20,7 +20,7 @@ Status: accepted (2026-10-22)
 ## Differences from CLAUDE.md and known limits
 
 - CLAUDE.md asks for last-writer-wins **per field**. This implementation is **per row**: two devices editing different fields of the same task offline will keep only the newer whole row. Per-field merge needs per-field timestamps and a change log; it is a candidate for a later milestone.
-- Conflict resolution trusts device clocks (`updated_at`). A device with a wrong clock can win or lose unfairly. The server clock (`synced_at`) is only used as the pull cursor.
+- Conflict resolution trusts device clocks (`updated_at`). A device with a wrong clock can win or lose unfairly. The server clock (`server_updated_at`) is only used as the pull cursor.
 - The auth token on native is stored unencrypted in SQLite. Moving it to `expo-secure-store` is planned before release.
 - `user_settings` (work hours, peak) is not synced yet.
 - There is no sync change log for recovery yet (CLAUDE.md section 11 mentions one).

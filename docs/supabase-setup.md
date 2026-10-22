@@ -22,7 +22,7 @@ npx supabase db push
 npx supabase functions deploy delete-account
 ```
 
-`db push` applies `supabase/migrations/*.sql`. `delete-account` uses the secret keys Supabase injects into Edge Functions automatically.
+`db push` applies `supabase/migrations/*.sql`. Done on 2026-10-22: the project is linked, `20261022010000_sync.sql` is applied and `delete-account` is deployed (its entrypoint is set in `supabase/config.toml`). `delete-account` uses the secret keys Supabase injects into Edge Functions automatically.
 
 ## 3. Google sign-in
 
