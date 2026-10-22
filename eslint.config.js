@@ -4,7 +4,7 @@ import jsdoc from 'eslint-plugin-jsdoc';
 import react from 'eslint-plugin-react';
 
 export default [
-  { ignores: ['docs/prototype/**', 'coverage/**', 'node_modules/**', '**/dist/**'] },
+  { ignores: ['.claude/**', 'docs/prototype/**', 'coverage/**', 'node_modules/**', '**/dist/**'] },
   js.configs.recommended,
   {
     languageOptions: {

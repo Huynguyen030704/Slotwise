@@ -12,6 +12,7 @@ import {
 } from '@expo-google-fonts/be-vietnam-pro';
 import '../src/i18n';
 import { ThemeProvider, useTheme } from '../src/theme/ThemeProvider';
+import { NodesProvider } from '../src/data/NodesProvider';
 
 function Shell() {
   const { colors, scheme } = useTheme();
@@ -23,7 +24,9 @@ function Shell() {
           headerShown: false,
           contentStyle: { backgroundColor: colors.bg },
         }}
-      />
+      >
+        <Stack.Screen name="import" options={{ presentation: 'modal' }} />
+      </Stack>
     </>
   );
 }
@@ -48,7 +51,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <Shell />
+          <NodesProvider>
+            <Shell />
+          </NodesProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

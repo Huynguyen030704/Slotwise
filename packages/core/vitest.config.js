@@ -5,7 +5,13 @@ export default defineConfig({
     include: ['test/**/*.test.js'],
     coverage: {
       provider: 'v8',
-      include: ['src/schedule.js', 'src/parseNotes.js', 'src/position.js', 'src/tree.js'],
+      include: [
+        'src/schedule.js',
+        'src/parseNotes.js',
+        'src/position.js',
+        'src/tree.js',
+        'src/nodeRows.js',
+      ],
       thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 },
     },
   },

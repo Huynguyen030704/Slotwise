@@ -255,3 +255,26 @@ export function moveNode(nodes, id, target, now) {
     nodes.map((n) => (n.id === id ? { ...n, parentId, position, updatedAt: now } : n)),
   );
 }
+
+/**
+ * Rows to show in the list: depth-first, skipping everything below a collapsed node.
+ * @param {TreeNode[]} nodes
+ * @returns {{ node: TreeNode, depth: number, hasChildren: boolean }[]}
+ */
+export function visibleRows(nodes) {
+  /** @type {{ node: TreeNode, depth: number, hasChildren: boolean }[]} */
+  const out = [];
+  /** @param {string | null} parentId @param {number} depth */
+  const walk = (parentId, depth) => {
+    for (const n of childrenOf(nodes, parentId)) {
+      out.push({
+        node: n,
+        depth,
+        hasChildren: childrenOf(nodes, n.id).some((c) => c.kind === 'task'),
+      });
+      if (!n.collapsed) walk(n.id, depth + 1);
+    }
+  };
+  walk(null, 0);
+  return out;
+}

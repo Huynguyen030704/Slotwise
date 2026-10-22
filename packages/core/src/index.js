@@ -1,4 +1,5 @@
 export { schedule } from './schedule.js';
+export { nodeToRow, rowToNode } from './nodeRows.js';
 export { parseNotes } from './parseNotes.js';
 export { positionBetween, initialPositions } from './position.js';
 export {
@@ -14,4 +15,5 @@ export {
   restore,
   setDone,
   softDelete,
+  visibleRows,
 } from './tree.js';

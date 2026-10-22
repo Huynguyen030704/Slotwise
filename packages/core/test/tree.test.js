@@ -12,6 +12,7 @@ import {
   restore,
   setDone,
   softDelete,
+  visibleRows,
 } from '../src/tree.js';
 
 /**
@@ -272,5 +273,26 @@ describe('moveNode', () => {
     ];
     const next = moveNode(nodes, 't2', { kind: 'before', id: 't1' }, 'T');
     expect(get(next, 't2').position).toBeTruthy();
+  });
+});
+
+describe('visibleRows', () => {
+  it('lists depth-first rows with depth and child flags', () => {
+    const rows = visibleRows(sample());
+    expect(rows.map((r) => [r.node.id, r.depth, r.hasChildren])).toEqual([
+      ['g1', 0, true],
+      ['a', 1, true],
+      ['a1', 2, false],
+      ['a2', 2, false],
+      ['b', 1, false],
+      ['g2', 0, true],
+      ['c', 1, false],
+      ['n', 1, false],
+    ]);
+  });
+
+  it('hides everything below a collapsed node', () => {
+    const nodes = sample().map((n) => (n.id === 'a' ? { ...n, collapsed: true } : n));
+    expect(visibleRows(nodes).map((r) => r.node.id)).toEqual(['g1', 'a', 'b', 'g2', 'c', 'n']);
   });
 });
