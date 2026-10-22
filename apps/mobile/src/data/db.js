@@ -86,19 +86,58 @@ export async function loadNodes() {
   return /** @type {import('@slotwise/core/nodeRows.js').NodeRow[]} */ (rows).map(rowToNode);
 }
 
-/** @param {TreeNode[]} nodes */
-export async function saveNodes(nodes) {
+/**
+ * Write rows. Local edits are marked dirty so the next sync pushes them; rows that just came from
+ * the server are saved clean.
+ * @param {TreeNode[]} nodes
+ * @param {{ dirty?: boolean }} [opts]
+ */
+export async function saveNodes(nodes, { dirty = true } = {}) {
   if (!nodes.length) return;
   const db = await getDb();
-  const sql = `INSERT OR REPLACE INTO tree_nodes (${COLS.join(',')}) VALUES (${COLS.map(() => '?').join(',')})`;
+  const cols = [...COLS, 'dirty'];
+  const sql = `INSERT OR REPLACE INTO tree_nodes (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`;
   await db.withTransactionAsync(async () => {
     for (const n of nodes) {
-      const row = /** @type {Record<string, any>} */ (nodeToRow(n));
+      const row = /** @type {Record<string, any>} */ ({ ...nodeToRow(n), dirty: dirty ? 1 : 0 });
       await db.runAsync(
         sql,
-        COLS.map((c) => row[c]),
+        cols.map((c) => row[c]),
       );
     }
+  });
+}
+
+/** Rows changed on this device and not yet pushed. */
+export async function loadDirtyNodes() {
+  const db = await getDb();
+  const rows = await db.getAllAsync('SELECT * FROM tree_nodes WHERE dirty = 1');
+  return /** @type {import('@slotwise/core/nodeRows.js').NodeRow[]} */ (rows).map(rowToNode);
+}
+
+/**
+ * After a push: clear the dirty flag, but only for rows that were not edited again meanwhile.
+ * @param {TreeNode[]} nodes
+ */
+export async function markClean(nodes) {
+  if (!nodes.length) return;
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    for (const n of nodes) {
+      await db.runAsync('UPDATE tree_nodes SET dirty = 0 WHERE id = ? AND updated_at = ?', [
+        n.id,
+        n.updatedAt ?? '',
+      ]);
+    }
+  });
+}
+
+/** Remove every local node and sync marker (used after the user confirms switching accounts). */
+export async function clearLocalData() {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM tree_nodes');
+    await db.runAsync("DELETE FROM user_settings WHERE key LIKE 'sync_%'");
   });
 }
 

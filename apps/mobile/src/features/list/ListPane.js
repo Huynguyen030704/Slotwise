@@ -3,7 +3,14 @@ import { ActivityIndicator, FlatList, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
-import { ClipboardList, ClipboardPaste, GripVertical, ListPlus, Target } from 'lucide-react-native';
+import {
+  ClipboardList,
+  ClipboardPaste,
+  GripVertical,
+  ListPlus,
+  Target,
+  UserRound,
+} from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { dropTargetAt, isDone, isLeaf, progress, visibleRows } from '@slotwise/core';
 import { useNodes } from '../../data/NodesProvider';
@@ -262,6 +269,9 @@ export function ListPane({ embedded = false }) {
         title={t('list.title')}
         extra={
           <>
+            <IconButton label={t('account.openLabel')} onPress={() => router.push('/account')}>
+              <UserRound size={20} color={colors.ink} />
+            </IconButton>
             <IconButton label={t('focus.openLabel')} onPress={() => router.push('/focus')}>
               <Target size={20} color={colors.ink} />
             </IconButton>

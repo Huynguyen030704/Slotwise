@@ -1,6 +1,6 @@
 /** Local SQLite schema. Mirrors `tree_nodes` and `user_settings` planned for Supabase. */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const MIGRATIONS = [
   // v1
@@ -31,5 +31,11 @@ export const MIGRATIONS = [
     key TEXT PRIMARY KEY NOT NULL,
     value TEXT NOT NULL
   );
+  `,
+  // v2: sync. Existing rows have never been pushed, so they start dirty.
+  `
+  ALTER TABLE tree_nodes ADD COLUMN dirty INTEGER NOT NULL DEFAULT 0;
+  UPDATE tree_nodes SET dirty = 1;
+  CREATE INDEX IF NOT EXISTS idx_tree_nodes_dirty ON tree_nodes(dirty);
   `,
 ];

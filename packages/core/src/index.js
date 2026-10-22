@@ -29,3 +29,5 @@ export {
 } from './day.js';
 export { addDays } from './dates.js';
 export { groupReport, reportToText, rollOver, taskCount, unfinishedOn } from './report.js';
+export { nodeToRemote, remoteToNode } from './remoteRows.js';
+export { mergeRemote } from './sync.js';

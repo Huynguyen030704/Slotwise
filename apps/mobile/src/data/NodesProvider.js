@@ -83,6 +83,8 @@ function makeNode(over) {
  * @property {(text: string) => { added: number, skipped: number }} importNotes
  * @property {(date: string) => number} rollOver move unfinished tasks of a date to the next day
  * @property {() => void} undo
+ * @property {() => Promise<void>} flush resolves once every edit so far is saved to the database
+ * @property {() => Promise<void>} refresh reload nodes from the database (after a sync pulled changes)
  */
 
 const NodesContext = createContext(/** @type {NodesApi | null} */ (null));
@@ -96,6 +98,9 @@ export function NodesProvider({ children }) {
   const [undoDepth, setUndoDepth] = useState(0);
   const ref = useRef(/** @type {TreeNode[]} */ ([]));
   const undoStack = useRef(/** @type {TreeNode[][]} */ ([]));
+  /** Saves run one after another so a later edit never lands before an earlier one. */
+  const saving = useRef(/** @type {Promise<unknown>} */ (Promise.resolve()));
+  const seq = useRef(0);
 
   useEffect(() => {
     let alive = true;
@@ -122,9 +127,11 @@ export function NodesProvider({ children }) {
       const prev = ref.current;
       if (next === prev) return;
       const before = new Map(prev.map((n) => [n.id, n]));
-      saveNodes(next.filter((n) => before.get(n.id) !== n)).catch((e) =>
-        console.warn('saveNodes failed', e?.message),
-      );
+      const changed = next.filter((n) => before.get(n.id) !== n);
+      seq.current += 1;
+      saving.current = saving.current
+        .then(() => saveNodes(changed))
+        .catch((e) => console.warn('saveNodes failed', e?.message));
       if (undoable) {
         undoStack.current.push(prev);
         if (undoStack.current.length > UNDO_LIMIT) undoStack.current.shift();
@@ -222,6 +229,20 @@ export function NodesProvider({ children }) {
           const { nodes: next, count } = rollOver(ref.current, date, nowIso());
           commit(next);
           return count;
+        },
+        flush: async () => {
+          await saving.current;
+        },
+        refresh: async () => {
+          await saving.current;
+          const mark = seq.current;
+          const loaded = await loadNodes();
+          // An edit made while loading would be lost: skip, the next sync reloads.
+          if (mark !== seq.current) return;
+          ref.current = loaded;
+          undoStack.current = [];
+          setUndoDepth(0);
+          setNodes(loaded);
         },
         undo: () => {
           const prev = undoStack.current.pop();

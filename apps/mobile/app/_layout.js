@@ -14,6 +14,8 @@ import '../src/i18n';
 import { ThemeProvider, useTheme } from '../src/theme/ThemeProvider';
 import { NodesProvider } from '../src/data/NodesProvider';
 import { SettingsProvider } from '../src/data/SettingsProvider';
+import { AuthProvider } from '../src/data/AuthProvider';
+import { SyncProvider } from '../src/data/SyncProvider';
 
 function Shell() {
   const { colors, scheme } = useTheme();
@@ -29,6 +31,7 @@ function Shell() {
         <Stack.Screen name="import" options={{ presentation: 'modal' }} />
         <Stack.Screen name="focus" options={{ presentation: 'modal' }} />
         <Stack.Screen name="summary" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="account" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );
@@ -55,9 +58,13 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <SettingsProvider>
-            <NodesProvider>
-              <Shell />
-            </NodesProvider>
+            <AuthProvider>
+              <NodesProvider>
+                <SyncProvider>
+                  <Shell />
+                </SyncProvider>
+              </NodesProvider>
+            </AuthProvider>
           </SettingsProvider>
         </ThemeProvider>
       </SafeAreaProvider>

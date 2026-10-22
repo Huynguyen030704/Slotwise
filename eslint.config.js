@@ -11,7 +11,7 @@ export default [
       ecmaVersion: 2022,
       sourceType: 'module',
       parserOptions: { ecmaFeatures: { jsx: true } },
-      globals: { ...globals.node, ...globals.browser, __DEV__: 'readonly' },
+      globals: { ...globals.node, ...globals.browser, __DEV__: 'readonly', Deno: 'readonly' },
     },
     plugins: { jsdoc, react },
     rules: {

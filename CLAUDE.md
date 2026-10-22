@@ -276,8 +276,11 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 **Hoàn thành khi:** dùng trọn một ngày làm việc được hoàn toàn offline, không mất dữ liệu khi tắt mở app.
 
 ### Milestone 2: Tài khoản và đồng bộ
-- [ ] Supabase Auth (email, Google, Apple), RLS, migrations.
-- [ ] Đồng bộ đa thiết bị, xử lý xung đột, xuất dữ liệu, xóa tài khoản.
+- [x] Migration `supabase/migrations/` (profiles, user_settings, tree_nodes, RLS, `push_tree_nodes`). **Chưa áp vào dự án Supabase**: cần `supabase login`, `link`, `db push` (xem `docs/supabase-setup.md`).
+- [x] Đăng nhập Google và email trong app (mã đã viết, **chưa thử với Supabase thật**). Apple để sau.
+- [x] Đồng bộ đa thiết bị: kéo/đẩy theo `updated_at`, xóa mềm, gộp dữ liệu cục bộ lần đầu (logic gộp có test trong core). Ghi sau cùng thắng theo **từng dòng**, chưa theo từng trường (xem ADR 0003).
+- [x] Xuất dữ liệu JSON, xóa tài khoản (Edge Function `delete-account`, **chưa deploy**).
+- [ ] Cấu hình Google OAuth, áp migration, deploy function, thử trên hai thiết bị thật.
 
 ### Milestone 3: Lịch ngoài
 - [ ] Google Calendar, Microsoft Outlook: lấy sự kiện làm khối bận, làm mới định kỳ.
