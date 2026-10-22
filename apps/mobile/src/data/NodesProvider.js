@@ -13,6 +13,7 @@ import {
   moveNode,
   parseNotes,
   positionBetween,
+  rollOver,
   setDone,
   softDelete,
 } from '@slotwise/core';
@@ -78,6 +79,7 @@ function makeNode(over) {
  * @property {(id: string) => void} remove
  * @property {(id: string, target: import('@slotwise/core/tree.js').DropTarget) => void} move
  * @property {(text: string) => { added: number, skipped: number }} importNotes
+ * @property {(date: string) => number} rollOver move unfinished tasks of a date to the next day
  * @property {() => void} undo
  */
 
@@ -204,6 +206,11 @@ export function NodesProvider({ children }) {
           });
           commit([...ref.current, ...created]);
           return { added: created.length, skipped: skippedLines.length };
+        },
+        rollOver: (date) => {
+          const { nodes: next, count } = rollOver(ref.current, date, nowIso());
+          commit(next);
+          return count;
         },
         undo: () => {
           const prev = undoStack.current.pop();

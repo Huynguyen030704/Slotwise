@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ClipboardPaste, ListPlus } from 'lucide-react-native';
+import { ClipboardList, ClipboardPaste, ListPlus, Target } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { isDone, progress, visibleRows } from '@slotwise/core';
 import { useNodes } from '../../src/data/NodesProvider';
@@ -62,9 +62,17 @@ export default function ListScreen() {
       <TopBar
         title={t('list.title')}
         extra={
-          <IconButton label={t('list.importNotes')} onPress={() => router.push('/import')}>
-            <ClipboardPaste size={20} color={colors.ink} />
-          </IconButton>
+          <>
+            <IconButton label={t('focus.openLabel')} onPress={() => router.push('/focus')}>
+              <Target size={20} color={colors.ink} />
+            </IconButton>
+            <IconButton label={t('summary.openLabel')} onPress={() => router.push('/summary')}>
+              <ClipboardList size={20} color={colors.ink} />
+            </IconButton>
+            <IconButton label={t('list.importNotes')} onPress={() => router.push('/import')}>
+              <ClipboardPaste size={20} color={colors.ink} />
+            </IconButton>
+          </>
         }
       />
       <QuickAdd

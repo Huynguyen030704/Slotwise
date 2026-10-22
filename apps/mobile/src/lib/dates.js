@@ -1,14 +1,4 @@
-import { localDate } from '../data/time';
-
-/**
- * Shift a 'YYYY-MM-DD' date by whole days (calendar arithmetic, no timezone drift).
- * @param {string} date
- * @param {number} days
- */
-export function addDays(date, days) {
-  const [y, m, d] = date.split('-').map(Number);
-  return localDate(new Date(y, m - 1, d + days));
-}
+export { addDays } from '@slotwise/core';
 
 /**
  * @param {string} date 'YYYY-MM-DD'

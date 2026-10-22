@@ -263,11 +263,12 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 **Hoàn thành khi:** CI xanh, `pnpm --filter @slotwise/core test` chạy qua mọi trường hợp ở mục 7 và 8.
 
 ### Milestone 1: Lõi cục bộ
-- [ ] Khung app Expo, điều hướng, token thiết kế, chế độ sáng tối, i18n.
-- [ ] SQLite và lớp truy cập dữ liệu, lưu cây việc.
-- [ ] Màn hình danh sách (cây nhóm, việc, việc con, tiến độ, thu gọn, sửa tên, xóa có hoàn tác).
-- [ ] Màn hình lịch ngày với dữ liệu họp mẫu, kéo thả theo mục 9.
-- [ ] Nhập ghi chú, chế độ tập trung, tổng kết ngày và sao chép báo cáo.
+- [x] Khung app Expo, điều hướng, token thiết kế, chế độ sáng tối, i18n.
+- [x] SQLite và lớp truy cập dữ liệu, lưu cây việc.
+- [x] Màn hình danh sách (cây nhóm, việc, việc con, tiến độ, thu gọn, sửa tên, xóa có hoàn tác).
+- [x] Màn hình lịch ngày với dữ liệu họp mẫu.
+- [ ] Kéo thả theo mục 9: đã có kéo khối trong lịch để ghim và kéo ra khỏi lịch để bỏ ghim (kèm menu "Ghim vào giờ…"). Còn thiếu: kéo việc từ danh sách vào lịch, kéo trong danh sách để đổi ưu tiên (đang có nút "Đưa lên/xuống" và "Chuyển vào nhóm"), chưa thử trên thiết bị thật.
+- [x] Nhập ghi chú, chế độ tập trung, tổng kết ngày và sao chép báo cáo.
 
 **Hoàn thành khi:** dùng trọn một ngày làm việc được hoàn toàn offline, không mất dữ liệu khi tắt mở app.
 

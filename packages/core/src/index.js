@@ -26,3 +26,5 @@ export {
   planDay,
   snapToGrid,
 } from './day.js';
+export { addDays } from './dates.js';
+export { groupReport, reportToText, rollOver, taskCount, unfinishedOn } from './report.js';

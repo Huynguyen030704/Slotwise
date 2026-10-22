@@ -32,7 +32,7 @@ export function Snackbar({ message, actionLabel, onAction }) {
           onPress={onAction}
           style={{ minHeight: MIN_TOUCH, paddingHorizontal: spacing.lg, justifyContent: 'center' }}
         >
-          <AppText weight="bodyBold" style={{ color: colors.light }}>
+          <AppText weight="bodyBold" style={{ color: colors.bg, textDecorationLine: 'underline' }}>
             {actionLabel}
           </AppText>
         </Pressable>

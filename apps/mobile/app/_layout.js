@@ -27,6 +27,8 @@ function Shell() {
         }}
       >
         <Stack.Screen name="import" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="focus" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="summary" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );
