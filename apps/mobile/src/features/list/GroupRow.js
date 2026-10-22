@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react-native';
+import { ChevronDown, ChevronRight, MoreHorizontal } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { AppText } from '../../ui/AppText';
 import { IconButton } from '../../ui/IconButton';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
-import { FolderPlus, Plus } from 'lucide-react-native';
+import { FolderPlus, Plus } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { AppText } from '../../ui/AppText';
 import { IconButton } from '../../ui/IconButton';

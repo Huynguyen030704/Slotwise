@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { AlertTriangle, ChevronLeft, ChevronRight } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useNodes } from '../../data/NodesProvider';
 import { useSettings } from '../../data/SettingsProvider';

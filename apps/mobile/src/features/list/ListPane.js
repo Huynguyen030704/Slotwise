@@ -10,7 +10,7 @@ import {
   ListPlus,
   Target,
   UserRound,
-} from 'lucide-react-native';
+} from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { dropTargetAt, isDone, isLeaf, progress, visibleRows } from '@slotwise/core';
 import { useNodes } from '../../data/NodesProvider';

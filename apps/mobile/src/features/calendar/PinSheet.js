@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { ChevronsLeft, ChevronsRight, Minus, Plus } from 'lucide-react-native';
+import { ChevronsLeft, ChevronsRight, Minus, Plus } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { checkPlacement, snapToGrid } from '@slotwise/core';
 import { Sheet } from '../../ui/Sheet';

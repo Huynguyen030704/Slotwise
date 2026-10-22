@@ -11,7 +11,7 @@ import {
   PinOff,
   SlidersHorizontal,
   Trash2,
-} from 'lucide-react-native';
+} from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { childrenOf, isLeaf } from '@slotwise/core';
 import { Sheet } from '../../ui/Sheet';

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { CalendarCheck, CloudOff, Layers, Zap } from 'lucide-react-native';
+import { CalendarCheck, CloudOff, Layers, Zap } from '../src/ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../src/data/AuthProvider';
 import { useSettings } from '../src/data/SettingsProvider';

@@ -16,6 +16,18 @@ export default [
     plugins: { jsdoc, react },
     rules: {
       'react/jsx-uses-vars': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'lucide-react-native',
+              message:
+                'Import icons from src/ui/icons.js: the package root pulls ~1900 icons into the dev bundle.',
+            },
+          ],
+        },
+      ],
       'no-var': 'error',
       'prefer-const': 'error',
       eqeqeq: ['error', 'always'],

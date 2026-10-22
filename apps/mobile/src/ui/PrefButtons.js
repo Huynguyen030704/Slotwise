@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { Languages, Moon, Sun } from 'lucide-react-native';
+import { Languages, Moon, Sun } from './icons';
 import { useTranslation } from 'react-i18next';
 import { IconButton } from './IconButton';
 import { useTheme } from '../theme/ThemeProvider';

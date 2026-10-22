@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Download, LogOut, RefreshCw, Trash2 } from 'lucide-react-native';
+import { Download, LogOut, RefreshCw, Trash2 } from '../src/ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../src/data/AuthProvider';
 import { useNodes } from '../src/data/NodesProvider';

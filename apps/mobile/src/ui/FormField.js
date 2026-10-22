@@ -1,6 +1,6 @@
 import { forwardRef, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff } from './icons';
 import { AppText } from './AppText';
 import { useTheme } from '../theme/ThemeProvider';
 import { MIN_TOUCH, fonts, radius, spacing } from '../theme/tokens';

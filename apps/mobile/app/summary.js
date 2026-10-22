@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
-import { CalendarArrowDown, Copy } from 'lucide-react-native';
+import { CalendarArrowDown, Copy } from '../src/ui/icons';
 import { useTranslation } from 'react-i18next';
 import { groupReport, leaves, reportToText, unfinishedOn } from '@slotwise/core';
 import { useNodes } from '../src/data/NodesProvider';

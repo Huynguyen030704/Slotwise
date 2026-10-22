@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Check, Coffee, Flag, GripVertical, Pin, Users, Wind, Zap } from 'lucide-react-native';
+import { Check, Coffee, Flag, GripVertical, Pin, Users, Wind, Zap } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { checkPlacement, snapToGrid } from '@slotwise/core';
 import { AppText } from '../../ui/AppText';

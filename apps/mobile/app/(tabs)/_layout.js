@@ -1,5 +1,5 @@
 import { Redirect, Tabs } from 'expo-router';
-import { CalendarDays, ListChecks } from 'lucide-react-native';
+import { CalendarDays, ListChecks } from '../../src/ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useWindowDimensions } from 'react-native';
 import { WIDE_BREAKPOINT } from '../../src/lib/layout';

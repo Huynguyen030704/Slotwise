@@ -8,7 +8,7 @@ import {
   Pin,
   Wind,
   Zap,
-} from 'lucide-react-native';
+} from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { AppText } from '../../ui/AppText';
 import { IconButton } from '../../ui/IconButton';

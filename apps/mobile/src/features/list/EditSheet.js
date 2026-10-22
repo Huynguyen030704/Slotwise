@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, Switch, View } from 'react-native';
-import { Minus, Plus, Wind, Zap } from 'lucide-react-native';
+import { Minus, Plus, Wind, Zap } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';

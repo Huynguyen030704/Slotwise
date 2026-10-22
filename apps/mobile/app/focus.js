@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Check, Pause, Play, RotateCcw, SkipForward } from 'lucide-react-native';
+import { Check, Pause, Play, RotateCcw, SkipForward } from '../src/ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useNodes } from '../src/data/NodesProvider';
 import { localDate } from '../src/data/time';
