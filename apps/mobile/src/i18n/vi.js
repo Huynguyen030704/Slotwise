@@ -73,6 +73,53 @@ export default {
     openErrorHint: 'Có thể Slotwise đang mở ở một tab khác. Đóng các tab khác rồi thử lại.',
     retry: 'Thử lại',
   },
+  welcome: {
+    tagline:
+      'Ghi việc kèm thời lượng, Slotwise tự xếp vào đúng khung giờ trống, đúng lúc bạn tỉnh táo nhất.',
+    formTitle: 'Chào mừng bạn',
+    formSubtitle: 'Đăng nhập để đồng bộ việc giữa điện thoại và máy tính.',
+    skip: 'Dùng thử, chưa cần tài khoản',
+    skipHint: 'Việc được lưu ngay trên máy này. Bạn có thể đăng nhập sau trong mục Tài khoản.',
+    props: {
+      plan: {
+        title: 'Lịch là trung tâm',
+        body: 'Việc được xếp vào khoảng trống giữa các cuộc họp, theo thứ tự ưu tiên của bạn.',
+      },
+      energy: {
+        title: 'Xếp theo năng lượng',
+        body: 'Việc cần tập trung vào giờ tỉnh táo, việc nhẹ vào giờ còn lại.',
+      },
+      offline: {
+        title: 'Dùng được khi mất mạng',
+        body: 'Mọi thao tác chạy ngay trên máy và tự đồng bộ khi có mạng.',
+      },
+    },
+  },
+  auth: {
+    google: 'Tiếp tục với Google',
+    or: 'hoặc dùng email',
+    signIn: 'Đăng nhập',
+    signUp: 'Tạo tài khoản',
+    createAccount: 'Tạo tài khoản',
+    email: 'Email',
+    password: 'Mật khẩu',
+    passwordHint: 'Ít nhất {{n}} ký tự.',
+    showPassword: 'Hiện mật khẩu',
+    hidePassword: 'Ẩn mật khẩu',
+    checkEmail: 'Đã gửi email xác nhận. Mở email và bấm vào liên kết để hoàn tất.',
+    errors: {
+      emailInvalid: 'Nhập địa chỉ email hợp lệ, ví dụ ten@congty.vn.',
+      passwordShort: 'Mật khẩu cần ít nhất {{n}} ký tự.',
+      invalidCredentials: 'Email hoặc mật khẩu chưa đúng. Kiểm tra lại hoặc tạo tài khoản mới.',
+      alreadyRegistered: 'Email này đã có tài khoản. Chuyển sang Đăng nhập.',
+      emailNotConfirmed: 'Email chưa được xác nhận. Mở email và bấm vào liên kết xác nhận.',
+      rateLimited: 'Bạn thử quá nhiều lần. Đợi một lát rồi thử lại.',
+      network: 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.',
+      weakPassword: 'Mật khẩu quá yếu. Dùng mật khẩu dài hơn.',
+      providerOff: 'Đăng nhập bằng Google chưa được bật. Dùng email hoặc thử lại sau.',
+      generic: 'Chưa đăng nhập được. Thử lại sau ít phút.',
+    },
+  },
   account: {
     title: 'Tài khoản',
     openLabel: 'Mở tài khoản và đồng bộ',

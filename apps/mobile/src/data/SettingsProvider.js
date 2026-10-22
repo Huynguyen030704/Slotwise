@@ -3,21 +3,35 @@ import { getSetting, setSetting } from './db';
 
 /** @typedef {'morning' | 'afternoon'} Peak */
 
-const SettingsContext = createContext(
-  /** @type {{ peak: Peak, setPeak: (p: Peak) => void } | null} */ (null),
-);
+/**
+ * @typedef {object} SettingsApi
+ * @property {boolean} ready stored settings have been read
+ * @property {Peak} peak
+ * @property {(p: Peak) => void} setPeak
+ * @property {boolean} welcomeSeen the user has already passed the welcome / sign-in screen
+ * @property {() => void} markWelcomeSeen
+ */
+
+const SettingsContext = createContext(/** @type {SettingsApi | null} */ (null));
 
 /** @param {{ children: import('react').ReactNode }} props */
 export function SettingsProvider({ children }) {
+  const [ready, setReady] = useState(false);
   const [peak, setPeakState] = useState(/** @type {Peak} */ ('morning'));
+  const [welcomeSeen, setWelcomeSeen] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    getSetting('peak')
-      .then((v) => {
-        if (alive && (v === 'morning' || v === 'afternoon')) setPeakState(v);
+    Promise.all([getSetting('peak'), getSetting('welcome_seen')])
+      .then(([p, w]) => {
+        if (!alive) return;
+        if (p === 'morning' || p === 'afternoon') setPeakState(p);
+        setWelcomeSeen(w === '1');
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setReady(true);
+      });
     return () => {
       alive = false;
     };
@@ -28,7 +42,15 @@ export function SettingsProvider({ children }) {
     setSetting('peak', p).catch(() => {});
   }, []);
 
-  const value = useMemo(() => ({ peak, setPeak }), [peak, setPeak]);
+  const markWelcomeSeen = useCallback(() => {
+    setWelcomeSeen(true);
+    setSetting('welcome_seen', '1').catch(() => {});
+  }, []);
+
+  const value = useMemo(
+    () => ({ ready, peak, setPeak, welcomeSeen, markWelcomeSeen }),
+    [ready, peak, setPeak, welcomeSeen, markWelcomeSeen],
+  );
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }
 

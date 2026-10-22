@@ -73,6 +73,54 @@ export default {
     openErrorHint: 'Slotwise may be open in another tab. Close the other tabs and try again.',
     retry: 'Try again',
   },
+  welcome: {
+    tagline:
+      'Write tasks with a duration and Slotwise fits them into free time, when you are sharpest.',
+    formTitle: 'Welcome',
+    formSubtitle: 'Sign in to sync your tasks between phone and computer.',
+    skip: 'Try it without an account',
+    skipHint: 'Your tasks are saved on this device. You can sign in later under Account.',
+    props: {
+      plan: {
+        title: 'The calendar comes first',
+        body: 'Tasks slot into the gaps between meetings, in the order you set.',
+      },
+      energy: {
+        title: 'Scheduled by energy',
+        body: 'Deep-focus work goes into your sharp hours, light work into the rest.',
+      },
+      offline: {
+        title: 'Works offline',
+        body: 'Everything runs on the device and syncs when you are back online.',
+      },
+    },
+  },
+  auth: {
+    google: 'Continue with Google',
+    or: 'or use email',
+    signIn: 'Sign in',
+    signUp: 'Create account',
+    createAccount: 'Create account',
+    email: 'Email',
+    password: 'Password',
+    passwordHint: 'At least {{n}} characters.',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+    checkEmail: 'We sent a confirmation email. Open it and tap the link to finish.',
+    errors: {
+      emailInvalid: 'Enter a valid email address, for example name@company.com.',
+      passwordShort: 'Password needs at least {{n}} characters.',
+      invalidCredentials: 'Email or password is incorrect. Check them or create a new account.',
+      alreadyRegistered: 'This email already has an account. Switch to Sign in.',
+      emailNotConfirmed:
+        'Email is not confirmed yet. Open the email and tap the confirmation link.',
+      rateLimited: 'Too many attempts. Wait a moment and try again.',
+      network: 'Could not reach the server. Check your connection and try again.',
+      weakPassword: 'That password is too weak. Use a longer one.',
+      providerOff: 'Google sign-in is not turned on yet. Use email or try again later.',
+      generic: 'Could not sign you in. Try again in a few minutes.',
+    },
+  },
   account: {
     title: 'Account',
     openLabel: 'Open account and sync',

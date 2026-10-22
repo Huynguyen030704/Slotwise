@@ -1,8 +1,10 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { CalendarDays, ListChecks } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useWindowDimensions } from 'react-native';
 import { WIDE_BREAKPOINT } from '../../src/lib/layout';
+import { useAuth } from '../../src/data/AuthProvider';
+import { useSettings } from '../../src/data/SettingsProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { fonts } from '../../src/theme/tokens';
 
@@ -10,17 +12,24 @@ export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const wide = useWindowDimensions().width >= WIDE_BREAKPOINT;
+  const auth = useAuth();
+  const settings = useSettings();
+
+  // First launch without an account: show the welcome screen once. Skipping it keeps the app fully
+  // usable offline; signing in later is available under Account.
+  if (settings.ready && !auth.loading && !auth.session && !settings.welcomeSeen) {
+    return <Redirect href="/welcome" />;
+  }
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.line,
-          minHeight: 56,
-        },
+        // A single tab is pointless: the day sits beside the list on wide screens.
+        tabBarStyle: wide
+          ? { display: 'none' }
+          : { backgroundColor: colors.surface, borderTopColor: colors.line, minHeight: 56 },
         tabBarLabelStyle: { fontFamily: fonts.bodyMedium, fontSize: 12 },
         sceneStyle: { backgroundColor: colors.bg },
       }}

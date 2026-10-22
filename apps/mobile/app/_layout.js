@@ -28,6 +28,7 @@ function Shell() {
           contentStyle: { backgroundColor: colors.bg },
         }}
       >
+        <Stack.Screen name="welcome" options={{ gestureEnabled: false }} />
         <Stack.Screen name="import" options={{ presentation: 'modal' }} />
         <Stack.Screen name="focus" options={{ presentation: 'modal' }} />
         <Stack.Screen name="summary" options={{ presentation: 'modal' }} />

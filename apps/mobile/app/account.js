@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Download, LogOut, RefreshCw, Trash2 } from 'lucide-react-native';
@@ -8,40 +8,12 @@ import { useAuth } from '../src/data/AuthProvider';
 import { useNodes } from '../src/data/NodesProvider';
 import { useSync } from '../src/data/SyncProvider';
 import { exportNodes } from '../src/data/exportData';
+import { AuthForm } from '../src/features/auth/AuthForm';
 import { AppText } from '../src/ui/AppText';
 import { Button } from '../src/ui/Button';
 import { Sheet } from '../src/ui/Sheet';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { MIN_TOUCH, fonts, radius, spacing } from '../src/theme/tokens';
-
-/** @param {{ label: string, value: string, onChange: (v: string) => void, secure?: boolean }} props */
-function Field({ label, value, onChange, secure }) {
-  const { colors } = useTheme();
-  return (
-    <TextInput
-      value={value}
-      onChangeText={onChange}
-      placeholder={label}
-      placeholderTextColor={colors.muted}
-      accessibilityLabel={label}
-      secureTextEntry={secure}
-      autoCapitalize="none"
-      autoCorrect={false}
-      keyboardType={secure ? 'default' : 'email-address'}
-      style={{
-        minHeight: MIN_TOUCH,
-        borderWidth: 1,
-        borderColor: colors.line,
-        borderRadius: radius.md,
-        paddingHorizontal: spacing.md,
-        color: colors.ink,
-        backgroundColor: colors.surface,
-        fontFamily: fonts.body,
-        fontSize: 16,
-      }}
-    />
-  );
-}
+import { radius, spacing } from '../src/theme/tokens';
 
 export default function AccountScreen() {
   const { t, i18n } = useTranslation();
@@ -51,35 +23,12 @@ export default function AccountScreen() {
   const sync = useSync();
   const { nodes } = useNodes();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [mode, setMode] = useState(/** @type {'in' | 'up'} */ ('in'));
-  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(
     /** @type {{ text: string, tone: 'danger' | 'ok' } | null} */ (null),
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
-
-  /** @param {() => Promise<string | null>} fn */
-  const run = async (fn) => {
-    setBusy(true);
-    setMessage(null);
-    const err = await fn();
-    setBusy(false);
-    if (err) setMessage({ text: t('account.authError', { message: err }), tone: 'danger' });
-    return err;
-  };
-
-  const submitEmail = async () => {
-    const err = await run(() =>
-      mode === 'in'
-        ? auth.signInWithPassword(email.trim(), password)
-        : auth.signUp(email.trim(), password),
-    );
-    if (!err && mode === 'up') setMessage({ text: t('account.checkEmail'), tone: 'ok' });
-  };
 
   const header = (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -139,28 +88,7 @@ export default function AccountScreen() {
         {!user ? (
           <View style={card}>
             <AppText tone="muted">{t('account.intro')}</AppText>
-            <Button
-              title={t('account.google')}
-              onPress={() => run(auth.signInWithGoogle)}
-              disabled={busy}
-            />
-            <AppText tone="muted" size={13} style={{ textAlign: 'center' }}>
-              {t('account.or')}
-            </AppText>
-            <Field label={t('account.email')} value={email} onChange={setEmail} />
-            <Field label={t('account.password')} value={password} onChange={setPassword} secure />
-            <Button
-              title={mode === 'in' ? t('account.signIn') : t('account.signUp')}
-              variant="secondary"
-              onPress={submitEmail}
-              disabled={busy || !email.trim() || password.length < 6}
-            />
-            <Button
-              title={mode === 'in' ? t('account.toSignUp') : t('account.toSignIn')}
-              variant="secondary"
-              onPress={() => setMode(mode === 'in' ? 'up' : 'in')}
-            />
-            {busy ? <ActivityIndicator color={colors.accent} /> : null}
+            <AuthForm />
           </View>
         ) : (
           <>
