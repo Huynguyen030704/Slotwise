@@ -4,8 +4,18 @@ import { MIGRATIONS } from './schema';
 
 /** @typedef {import('@slotwise/core/types.js').TreeNode} TreeNode */
 
-/** @type {Promise<SQLite.SQLiteDatabase> | null} */
-let dbPromise = null;
+// Kept on globalThis so a hot reload (which re-evaluates this module) reuses the open database.
+// On web the file lives in OPFS, where only one connection may hold it at a time.
+const GLOBAL_KEY = '__slotwiseDb';
+const g = /** @type {Record<string, any>} */ (globalThis);
+
+/** @param {unknown} e */
+export function isLockedError(e) {
+  return /Access Handle|createSyncAccessHandle/i.test(String(/** @type {any} */ (e)?.message ?? e));
+}
+
+/** @param {number} ms */
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function open() {
   const db = await SQLite.openDatabaseAsync('slotwise.db');
@@ -21,9 +31,30 @@ async function open() {
   return db;
 }
 
+/** A page that was just reloaded may still be releasing the file: retry before giving up. */
+async function openWithRetry() {
+  let last;
+  for (let i = 0; i < 6; i++) {
+    try {
+      return await open();
+    } catch (e) {
+      last = e;
+      if (!isLockedError(e)) throw e;
+      await sleep(300 * (i + 1));
+    }
+  }
+  throw last;
+}
+
+/** @returns {Promise<SQLite.SQLiteDatabase>} */
 function getDb() {
-  if (!dbPromise) dbPromise = open();
-  return dbPromise;
+  if (!g[GLOBAL_KEY]) {
+    g[GLOBAL_KEY] = openWithRetry().catch((e) => {
+      g[GLOBAL_KEY] = null; // allow a retry from the UI
+      throw e;
+    });
+  }
+  return g[GLOBAL_KEY];
 }
 
 const COLS = [

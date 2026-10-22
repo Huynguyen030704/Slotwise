@@ -68,6 +68,11 @@ export default {
     resultSkipped: 'Added {{added}} items, skipped {{skipped}} unreadable lines.',
     nothing: 'No tasks found. Check the text you pasted.',
   },
+  data: {
+    openError: 'Could not open the data on this device.',
+    openErrorHint: 'Slotwise may be open in another tab. Close the other tabs and try again.',
+    retry: 'Try again',
+  },
   focus: {
     title: 'Focus mode',
     empty: 'Nothing left to do today. Take a break or add a task.',

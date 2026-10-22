@@ -287,6 +287,30 @@ export function ListPane({ embedded = false }) {
   const Root = embedded ? View : SafeAreaView;
   const rootProps = embedded ? {} : { edges: /** @type {const} */ (['top']) };
 
+  if (api.loadError) {
+    return (
+      <Root {...rootProps} style={{ flex: 1, padding: spacing.lg, gap: spacing.md }}>
+        {header}
+        <View
+          accessibilityRole="alert"
+          style={{
+            gap: spacing.md,
+            alignItems: 'flex-start',
+            padding: spacing.lg,
+            borderWidth: 1,
+            borderColor: colors.danger,
+            borderRadius: radius.lg,
+            backgroundColor: colors.surface,
+          }}
+        >
+          <AppText weight="bodyBold">{t('data.openError')}</AppText>
+          <AppText tone="muted">{t('data.openErrorHint')}</AppText>
+          <Button title={t('data.retry')} onPress={api.reload} />
+        </View>
+      </Root>
+    );
+  }
+
   if (!api.ready) {
     return (
       <Root {...rootProps} style={{ flex: 1, padding: spacing.lg }}>

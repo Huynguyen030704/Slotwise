@@ -69,6 +69,8 @@ function makeNode(over) {
  * @typedef {object} NodesApi
  * @property {TreeNode[]} nodes all nodes including soft-deleted
  * @property {boolean} ready
+ * @property {Error | null} loadError set when the local database could not be opened
+ * @property {() => void} reload try opening the local database again
  * @property {boolean} canUndo
  * @property {(title: string) => void} addGroup
  * @property {(title: string, parentId: string | null) => void} addTask
@@ -89,22 +91,29 @@ const NodesContext = createContext(/** @type {NodesApi | null} */ (null));
 export function NodesProvider({ children }) {
   const [nodes, setNodes] = useState(/** @type {TreeNode[]} */ ([]));
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState(/** @type {Error | null} */ (null));
+  const [attempt, setAttempt] = useState(0);
   const [undoDepth, setUndoDepth] = useState(0);
   const ref = useRef(/** @type {TreeNode[]} */ ([]));
   const undoStack = useRef(/** @type {TreeNode[][]} */ ([]));
 
   useEffect(() => {
     let alive = true;
-    loadNodes().then((loaded) => {
-      if (!alive) return;
-      ref.current = loaded;
-      setNodes(loaded);
-      setReady(true);
-    });
+    setLoadError(null);
+    loadNodes()
+      .then((loaded) => {
+        if (!alive) return;
+        ref.current = loaded;
+        setNodes(loaded);
+        setReady(true);
+      })
+      .catch((e) => {
+        if (alive) setLoadError(e instanceof Error ? e : new Error(String(e)));
+      });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [attempt]);
 
   /** Swap in `next`, save only the changed rows, optionally record an undo step. */
   const commit = useCallback(
@@ -132,6 +141,8 @@ export function NodesProvider({ children }) {
       /** @type {NodesApi} */ ({
         nodes,
         ready,
+        loadError,
+        reload: () => setAttempt((n) => n + 1),
         canUndo: undoDepth > 0,
         addGroup: (title) => {
           const t = title.trim();
@@ -227,7 +238,7 @@ export function NodesProvider({ children }) {
           commit([...restored, ...added], false);
         },
       }),
-    [nodes, ready, undoDepth, commit],
+    [nodes, ready, loadError, undoDepth, commit],
   );
 
   return <NodesContext.Provider value={api}>{children}</NodesContext.Provider>;

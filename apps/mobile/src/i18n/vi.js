@@ -68,6 +68,11 @@ export default {
     resultSkipped: 'Đã thêm {{added}} mục, bỏ qua {{skipped}} dòng không đọc được.',
     nothing: 'Chưa đọc được việc nào. Kiểm tra lại nội dung đã dán.',
   },
+  data: {
+    openError: 'Không mở được dữ liệu trên máy.',
+    openErrorHint: 'Có thể Slotwise đang mở ở một tab khác. Đóng các tab khác rồi thử lại.',
+    retry: 'Thử lại',
+  },
   focus: {
     title: 'Chế độ tập trung',
     empty: 'Hôm nay chưa có việc nào cần làm. Nghỉ một chút hoặc thêm việc mới.',
