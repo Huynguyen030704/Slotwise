@@ -20,7 +20,7 @@ Thị trường đã có các công cụ tự xếp lịch (ví dụ Motion, Rec
 
 ## 2. Quy ước làm việc
 
-- **Ngôn ngữ:** trao đổi với chủ dự án bằng **tiếng Việt**. Mã nguồn, tên biến, commit message, tên nhánh, tài liệu kỹ thuật bằng **tiếng Anh**. Chuỗi hiển thị cho người dùng nằm trong tệp i18n, không viết cứng trong component.
+- **Ngôn ngữ:** trao đổi với chủ dự án bằng **tiếng Việt**. Mã nguồn, tên biến, tên nhánh, tài liệu kỹ thuật bằng **tiếng Anh**. Commit message dùng Conventional Commits với phần mô tả **tiếng Việt** (xem ADR 0001). Chuỗi hiển thị cho người dùng nằm trong tệp i18n, không viết cứng trong component.
 - **Lập kế hoạch trước:** với việc lớn hơn một sửa nhỏ, nêu kế hoạch ngắn và chờ chủ dự án đồng ý trước khi sửa nhiều tệp.
 - **Thay đổi nhỏ, rõ ràng:** mỗi commit một ý, mỗi PR một chủ đề. Dùng Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`).
 - **Kiểm thử trước với lõi nghiệp vụ:** mọi thay đổi trong `packages/core` phải có kiểm thử đơn vị. Không merge khi test đỏ.
@@ -35,8 +35,8 @@ Trạng thái: **đề xuất khởi đầu**. Xác nhận với chủ dự án 
 
 | Lớp | Lựa chọn | Lý do |
 |---|---|---|
-| App | React Native + Expo (Expo Router), JavaScript strict | Một codebase cho iOS, Android, web. |
-| Lõi nghiệp vụ | `packages/core`, JavaScript thuần, không phụ thuộc React hay Expo | Dễ kiểm thử, dùng lại ở web và Edge Functions. |
+| App | React Native + Expo (Expo Router), JavaScript (ESM) + JSDoc, typecheck bằng `tsc --checkJs` | Một codebase cho iOS, Android, web. |
+| Lõi nghiệp vụ | `packages/core`, JavaScript thuần (JSDoc), không phụ thuộc React hay Expo | Dễ kiểm thử, dùng lại ở web và Edge Functions. |
 | Kiểm thử | Vitest (core), React Native Testing Library, Maestro hoặc Detox (E2E sau) | |
 | Dữ liệu cục bộ | SQLite (`expo-sqlite`) | Offline-first. |
 | Backend | Supabase: Postgres, Auth, RLS, Edge Functions | Nhanh dựng, có RLS cho bảo mật theo người dùng. |
@@ -48,22 +48,22 @@ Trạng thái: **đề xuất khởi đầu**. Xác nhận với chủ dự án 
 
 ## 4. Lệnh thường dùng
 
-Điền vào sau khi khởi tạo xong Milestone 0. Giữ mục này luôn đúng.
+Giữ mục này luôn đúng. Cần Node >= 22 (xem `.nvmrc`) và pnpm.
 
 ```bash
-# TODO sau Milestone 0
 pnpm install
-pnpm -w lint
-pnpm -w typecheck
-pnpm --filter @slotwise/core test
-pnpm --filter mobile start
+pnpm lint                              # ESLint
+pnpm typecheck                         # tsc --checkJs trên JSDoc
+pnpm format:check                      # Prettier (tệp .md không bị format)
+pnpm --filter @slotwise/core test      # Vitest + coverage, ngưỡng 100% cho schedule và parseNotes
+# apps/mobile (Expo) sẽ có từ Milestone 1: pnpm --filter mobile start
 ```
 
 ## 5. Cấu trúc thư mục
 
 ```
 apps/mobile/          Expo app
-packages/core/        Thuật toán xếp lịch, bộ đọc ghi chú, kiểu dữ liệu (TS thuần)
+packages/core/        Thuật toán xếp lịch, bộ đọc ghi chú, kiểu dữ liệu (JS thuần + JSDoc)
 supabase/migrations/  Schema SQL
 supabase/functions/   Edge Functions (proxy AI, đồng bộ lịch)
 docs/prototype/       Prototype HTML tham chiếu (không sửa, không import)
@@ -73,6 +73,8 @@ docs/decisions/       ADR: một tệp markdown cho mỗi quyết định kỹ t
 ## 6. Mô hình dữ liệu
 
 Cây công việc lưu **phẳng**, mỗi nút trỏ tới nút cha. Thứ tự anh em là thứ tự trong cây và **cũng là thứ tự ưu tiên khi xếp lịch**.
+
+Kiểu dưới đây viết bằng cú pháp TypeScript chỉ để mô tả. Mã thật dùng `@typedef` JSDoc trong `packages/core/src/types.js`.
 
 ```ts
 type NodeKind = 'group' | 'task' | 'note';
@@ -121,7 +123,7 @@ Các bảng Supabase (phác thảo, mọi bảng có RLS `user_id = auth.uid()`)
 
 ## 7. Thuật toán xếp lịch
 
-Viết thành **hàm thuần, xác định** trong `packages/core/src/schedule.ts`. Cùng đầu vào luôn cho cùng kết quả. Không đọc giờ hệ thống bên trong hàm.
+Viết thành **hàm thuần, xác định** trong `packages/core/src/schedule.js`. Cùng đầu vào luôn cho cùng kết quả. Không đọc giờ hệ thống bên trong hàm.
 
 ```ts
 interface Block { startMin: number; endMin: number }         // họp, nghỉ trưa, việc đã xong có giữ chỗ
@@ -169,7 +171,7 @@ Bộ kiểm thử tối thiểu cho `schedule`:
 
 ## 8. Bộ đọc ghi chú (Notes import)
 
-`packages/core/src/parseNotes.ts`. Chuyển văn bản Notepad hoặc Markdown thành danh sách `TreeNode` (chưa có `userId`, `position`). Tham chiếu: `docs/prototype/notes-parser.js`. Quy tắc:
+`packages/core/src/parseNotes.js`. Chuyển văn bản Notepad hoặc Markdown thành danh sách `TreeNode` (chưa có `userId`, `position`). Tham chiếu: `docs/prototype/notes-parser.js`. Quy tắc:
 
 | Cú pháp | Ý nghĩa |
 |---|---|
@@ -252,11 +254,11 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 ## 13. Lộ trình và định nghĩa hoàn thành
 
 ### Milestone 0: Nền móng
-- [ ] Xác nhận công nghệ với chủ dự án, ghi ADR đầu tiên.
-- [ ] Khởi tạo monorepo (pnpm workspaces), JavaScript strict, ESLint, Prettier.
-- [ ] CI GitHub Actions: lint, typecheck, test.
-- [ ] `packages/core`: kiểu dữ liệu, `schedule`, `parseNotes`, kiểm thử theo mục 7 và 8. Độ phủ của hai hàm này gần 100%.
-- [ ] Điền mục 4 (lệnh thường dùng) trong tệp này.
+- [x] Xác nhận công nghệ với chủ dự án, ghi ADR đầu tiên.
+- [x] Khởi tạo monorepo (pnpm workspaces), JavaScript (ESM) + JSDoc, typecheck bằng `tsc --checkJs`, ESLint, Prettier.
+- [x] CI GitHub Actions: lint, typecheck, test.
+- [x] `packages/core`: kiểu dữ liệu, `schedule`, `parseNotes`, kiểm thử theo mục 7 và 8. Độ phủ của hai hàm này gần 100%.
+- [x] Điền mục 4 (lệnh thường dùng) trong tệp này.
 
 **Hoàn thành khi:** CI xanh, `pnpm --filter @slotwise/core test` chạy qua mọi trường hợp ở mục 7 và 8.
 
