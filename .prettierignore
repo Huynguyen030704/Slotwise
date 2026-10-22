@@ -1,0 +1,4 @@
+docs/prototype
+coverage
+pnpm-lock.yaml
+*.md
