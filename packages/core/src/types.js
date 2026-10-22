@@ -22,6 +22,9 @@
  * @property {string | null} doneAt ISO UTC
  * @property {string | null} doneDate 'YYYY-MM-DD'
  * @property {number | null} doneStartMin
+ * @property {string} [createdAt] ISO UTC
+ * @property {string} [updatedAt] ISO UTC
+ * @property {string | null} [deletedAt] ISO UTC, soft delete
  */
 
 /**
