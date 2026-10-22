@@ -31,3 +31,15 @@ export { addDays } from './dates.js';
 export { groupReport, reportToText, rollOver, taskCount, unfinishedOn } from './report.js';
 export { nodeToRemote, remoteToNode } from './remoteRows.js';
 export { mergeRemote } from './sync.js';
+export {
+  DEFAULT_FIXED_BLOCKS,
+  DEFAULT_SETTINGS,
+  GRID,
+  MAX_FIXED_BLOCKS,
+  MIN_WORK_SPAN,
+  mergeSettings,
+  normalizeSettings,
+  peakWindow,
+  settingsFromRemote,
+  settingsToRemote,
+} from './settings.js';

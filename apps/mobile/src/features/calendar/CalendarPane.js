@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AlertTriangle, ChevronLeft, ChevronRight } from '../../ui/icons';
+import { AlertTriangle, ChevronLeft, ChevronRight, Settings } from '../../ui/icons';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useNodes } from '../../data/NodesProvider';
 import { useSettings } from '../../data/SettingsProvider';
@@ -22,20 +23,19 @@ import { useDayPlan } from './useDayPlan';
 import { useTheme } from '../../theme/ThemeProvider';
 import { MIN_TOUCH, radius, spacing } from '../../theme/tokens';
 
-const WORK_START = 480;
-const WORK_END = 1080;
 const PEAK_CHOICES = /** @type {const} */ (['morning', 'afternoon']);
 
 /** @param {{ embedded?: boolean }} props */
 export function CalendarPane({ embedded = false }) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
+  const router = useRouter();
   const api = useNodes();
   const { peak, setPeak } = useSettings();
   const Root = embedded ? View : SafeAreaView;
   const rootProps = embedded ? {} : { edges: /** @type {const} */ (['top']) };
   const [date, setDate] = useState(localDate());
-  const { fixed, blocks, unplaced, peakBlock } = useDayPlan(date);
+  const { fixed, blocks, unplaced, peakBlock, workStartMin, workEndMin } = useDayPlan(date);
 
   const [menu, setMenu] = useState(/** @type {string | null} */ (null));
   const [pinning, setPinning] = useState(/** @type {string | null} */ (null));
@@ -92,33 +92,46 @@ export function CalendarPane({ embedded = false }) {
         </IconButton>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <AppText size={13} tone="muted">
-          {t('calendar.peakToggle')}
-        </AppText>
-        {PEAK_CHOICES.map((p) => {
-          const active = peak === p;
-          return (
-            <Pressable
-              key={p}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: active }}
-              onPress={() => setPeak(p)}
-              style={{
-                minHeight: 36,
-                paddingHorizontal: spacing.md,
-                justifyContent: 'center',
-                borderRadius: 18,
-                borderWidth: 1,
-                borderColor: active ? colors.accent : colors.line,
-                backgroundColor: active ? colors.accent : colors.surface,
-              }}
-            >
-              <AppText size={13} weight="bodyMedium" tone={active ? 'accentInk' : 'ink'}>
-                {t(`calendar.${p}`)}
-              </AppText>
-            </Pressable>
-          );
-        })}
+        <View
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.sm,
+            flexWrap: 'wrap',
+          }}
+        >
+          <AppText size={13} tone="muted">
+            {t('calendar.peakToggle')}
+          </AppText>
+          {PEAK_CHOICES.map((p) => {
+            const active = peak === p;
+            return (
+              <Pressable
+                key={p}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+                onPress={() => setPeak(p)}
+                style={{
+                  minHeight: 36,
+                  paddingHorizontal: spacing.md,
+                  justifyContent: 'center',
+                  borderRadius: 18,
+                  borderWidth: 1,
+                  borderColor: active ? colors.accent : colors.line,
+                  backgroundColor: active ? colors.accent : colors.surface,
+                }}
+              >
+                <AppText size={13} weight="bodyMedium" tone={active ? 'accentInk' : 'ink'}>
+                  {t(`calendar.${p}`)}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </View>
+        <IconButton label={t('prefs.open')} onPress={() => router.push('/settings')}>
+          <Settings size={20} color={colors.ink} />
+        </IconButton>
       </View>
       {unplaced.length ? (
         <View
@@ -190,8 +203,8 @@ export function CalendarPane({ embedded = false }) {
         )}
       </View>
       <Timeline
-        workStartMin={WORK_START}
-        workEndMin={WORK_END}
+        workStartMin={workStartMin}
+        workEndMin={workEndMin}
         peak={peakBlock}
         fixed={fixed}
         blocks={blocks}

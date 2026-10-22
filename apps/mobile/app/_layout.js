@@ -33,6 +33,7 @@ function Shell() {
         <Stack.Screen name="focus" options={{ presentation: 'modal' }} />
         <Stack.Screen name="summary" options={{ presentation: 'modal' }} />
         <Stack.Screen name="account" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );

@@ -14,9 +14,6 @@ import { localDate } from '../../data/time';
 import { useNodes } from '../../data/NodesProvider';
 import { useDayPlan } from './useDayPlan';
 
-const WORK_START = 480;
-const WORK_END = 1080;
-
 /**
  * Keyboard/button alternative to dragging a task onto the calendar ("Ghim vào giờ…").
  * @param {{ node: import('@slotwise/core/types.js').TreeNode | null, onClose: () => void, onPinned?: (message: string) => void }} props
@@ -26,7 +23,7 @@ export function PinSheet({ node, onClose, onPinned }) {
   const { colors } = useTheme();
   const api = useNodes();
   const date = node?.scheduledDate ?? localDate();
-  const { blocks, busyFor } = useDayPlan(date);
+  const { blocks, busyFor, workStartMin: WORK_START, workEndMin: WORK_END } = useDayPlan(date);
   const [start, setStart] = useState(WORK_START);
 
   useEffect(() => {

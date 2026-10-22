@@ -119,7 +119,7 @@ Quy tắc nghiệp vụ trên cây:
 Các bảng Supabase (phác thảo, mọi bảng có RLS `user_id = auth.uid()`):
 
 - `profiles(user_id, display_name, locale, timezone)`
-- `user_settings(user_id, work_start_min, work_end_min, peak ('morning'|'afternoon'), buffer_min, grid_min)`
+- `user_settings(user_id, work_start_min, work_end_min, peak ('morning'|'afternoon'), buffer_min, grid_min, fixed_blocks jsonb)`: `fixed_blocks` là danh sách khung giờ cố định mỗi ngày `{id, kind: 'lunch'|'meeting', label?, startMin, endMin}`. Người dùng chỉnh trong màn Thiết lập (giờ làm việc, giờ tỉnh táo, khung giờ cố định), đồng bộ theo tài khoản.
 - `tree_nodes(...)` như kiểu `TreeNode` ở trên.
 - `calendar_accounts(id, user_id, provider, encrypted_refresh_token, ...)`: token mã hóa, chỉ Edge Function đọc được.
 - `calendar_events(id, user_id, account_id, external_id, start_utc, end_utc, title_hash_or_title, is_busy, updated_at)`: cache sự kiện.
@@ -269,7 +269,7 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 - [x] Khung app Expo, điều hướng, token thiết kế, chế độ sáng tối, i18n.
 - [x] SQLite và lớp truy cập dữ liệu, lưu cây việc.
 - [x] Màn hình danh sách (cây nhóm, việc, việc con, tiến độ, thu gọn, sửa tên, xóa có hoàn tác).
-- [x] Màn hình lịch ngày với dữ liệu họp mẫu.
+- [x] Màn hình lịch ngày. Họp mẫu đã bỏ: giờ làm việc, giờ tỉnh táo và khung giờ cố định do người dùng cấu hình trong Thiết lập (lịch ngoài thật ở Milestone 3).
 - [x] Kéo thả theo mục 9: kéo khối trong lịch để ghim, kéo ra khỏi lịch để bỏ ghim, kéo trong danh sách (trước/sau dòng, vào nhóm), kéo việc từ danh sách vào lịch (màn hình rộng từ 900dp, danh sách và lịch cạnh nhau). Điện thoại hẹp dùng menu "Ghim vào giờ…" và "Đưa lên/xuống". Chưa thử trên thiết bị thật.
 - [x] Nhập ghi chú, chế độ tập trung, tổng kết ngày và sao chép báo cáo.
 

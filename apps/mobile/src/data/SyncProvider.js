@@ -8,9 +8,17 @@ import {
   useState,
 } from 'react';
 import { AppState, Platform } from 'react-native';
-import { mergeRemote, nodeToRemote, remoteToNode } from '@slotwise/core';
+import {
+  mergeRemote,
+  mergeSettings,
+  nodeToRemote,
+  remoteToNode,
+  settingsFromRemote,
+  settingsToRemote,
+} from '@slotwise/core';
 import { useAuth } from './AuthProvider';
 import { useNodes } from './NodesProvider';
+import { useSettings } from './SettingsProvider';
 import {
   clearLocalData,
   getSetting,
@@ -85,6 +93,37 @@ async function push() {
   }
 }
 
+/**
+ * Settings are one row per user: a copy edited here and not yet pushed wins, otherwise the newer
+ * copy wins (see `mergeSettings`).
+ * @param {string} uid
+ * @param {() => import('./SettingsProvider').SettingsApi} get latest settings state
+ */
+async function syncSettings(uid, get) {
+  if (!supabase) return;
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', uid)
+    .maybeSingle();
+  if (error) throw error;
+  const mine = get();
+  if (data) {
+    const remote = settingsFromRemote(data);
+    if (mergeSettings(mine.settings, mine.dirty, remote).source === 'remote') {
+      mine.applyRemote(remote);
+      return;
+    }
+  }
+  if (!mine.dirty) return;
+  const { error: pushError } = await supabase
+    .from('user_settings')
+    .upsert({ user_id: uid, ...settingsToRemote(mine.settings) }, { onConflict: 'user_id' });
+  if (pushError) throw pushError;
+  // Only mark clean if nothing was edited while the request was in flight.
+  if (get().settings.updatedAt === mine.settings.updatedAt) get().markClean();
+}
+
 /** @param {unknown} e */
 function isNetworkError(e) {
   const msg = String(/** @type {any} */ (e)?.message ?? e);
@@ -97,6 +136,9 @@ export function SyncProvider({ children }) {
   const nodesApi = useNodes();
   const apiRef = useRef(nodesApi);
   apiRef.current = nodesApi;
+  const settingsApi = useSettings();
+  const settingsRef = useRef(settingsApi);
+  settingsRef.current = settingsApi;
 
   const [state, setState] = useState(/** @type {SyncState} */ ('signedOut'));
   const [lastSyncAt, setLastSyncAt] = useState(/** @type {number | null} */ (null));
@@ -124,6 +166,7 @@ export function SyncProvider({ children }) {
       if (!bound) await setSetting('sync_user', uid);
       const pulled = await pull(uid);
       await push();
+      await syncSettings(uid, () => settingsRef.current);
       if (pulled > 0) await apiRef.current.refresh();
       setLastSyncAt(Date.now());
       setState('idle');
@@ -153,7 +196,7 @@ export function SyncProvider({ children }) {
     if (!uid || !nodesApi.ready) return undefined;
     const id = setTimeout(() => syncNow(), DEBOUNCE_MS);
     return () => clearTimeout(id);
-  }, [uid, nodesApi.ready, nodesApi.nodes, syncNow]);
+  }, [uid, nodesApi.ready, nodesApi.nodes, settingsApi.settings.updatedAt, syncNow]);
 
   // Back in the foreground or back online.
   useEffect(() => {
