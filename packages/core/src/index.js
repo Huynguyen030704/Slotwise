@@ -17,3 +17,12 @@ export {
   softDelete,
   visibleRows,
 } from './tree.js';
+export {
+  DEFAULT_GRID,
+  DEFAULT_WORK_END,
+  DEFAULT_WORK_START,
+  PEAKS,
+  checkPlacement,
+  planDay,
+  snapToGrid,
+} from './day.js';

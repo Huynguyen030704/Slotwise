@@ -17,6 +17,9 @@ import { GroupRow } from '../../src/features/list/GroupRow';
 import { QuickAdd } from '../../src/features/list/QuickAdd';
 import { ActionsSheet } from '../../src/features/list/ActionsSheet';
 import { EditSheet } from '../../src/features/list/EditSheet';
+import { PinSheet } from '../../src/features/calendar/PinSheet';
+import { addDays } from '../../src/lib/dates';
+import { localDate } from '../../src/data/time';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { radius, spacing } from '../../src/theme/tokens';
 
@@ -32,6 +35,7 @@ export default function ListScreen() {
   const [renaming, setRenaming] = useState(/** @type {string | null} */ (null));
   const [subtaskOf, setSubtaskOf] = useState(/** @type {string | null} */ (null));
   const [editing, setEditing] = useState(/** @type {string | null} */ (null));
+  const [pinning, setPinning] = useState(/** @type {string | null} */ (null));
   const [snack, setSnack] = useState(
     /** @type {{ message: string, undo: boolean } | null} */ (null),
   );
@@ -156,6 +160,15 @@ export default function ListScreen() {
         onEdit={() => setEditing(menu)}
         onAddSubtask={() => setSubtaskOf(menu)}
         onMove={(dropTarget) => menu && api.move(menu, dropTarget)}
+        onPin={() => setPinning(menu)}
+        onUnpin={() => menu && api.update(menu, { pinnedStartMin: null })}
+        onTomorrow={() =>
+          menu &&
+          api.update(menu, {
+            scheduledDate: addDays(menuNode?.scheduledDate ?? localDate(), 1),
+            pinnedStartMin: null,
+          })
+        }
         onDelete={() => {
           if (!menuNode) return;
           api.remove(menuNode.id);
@@ -177,6 +190,11 @@ export default function ListScreen() {
         submitLabel={t('list.addTask')}
         onSubmit={(text) => subtaskOf && api.addTask(text, subtaskOf)}
         onClose={() => setSubtaskOf(null)}
+      />
+      <PinSheet
+        node={byId(pinning)}
+        onClose={() => setPinning(null)}
+        onPinned={(message) => setSnack({ message, undo: true })}
       />
       <EditSheet
         node={byId(editing)}

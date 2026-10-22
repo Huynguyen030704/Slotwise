@@ -2,6 +2,8 @@ import { Pressable } from 'react-native';
 import {
   ArrowDown,
   ArrowUp,
+  CalendarArrowDown,
+  Check,
   CornerDownRight,
   FolderInput,
   Pencil,
@@ -49,11 +51,14 @@ function Item({ icon, label, onPress, danger }) {
  *   onClose: () => void,
  *   onRename: () => void,
  *   onEdit: () => void,
- *   onAddSubtask: () => void,
+ *   onAddSubtask?: () => void,
  *   onDelete: () => void,
- *   onMove: (target: import('@slotwise/core/tree.js').DropTarget) => void,
+ *   onMove?: (target: import('@slotwise/core/tree.js').DropTarget) => void,
  *   onPin?: () => void,
  *   onUnpin?: () => void,
+ *   onTomorrow?: () => void,
+ *   done?: boolean,
+ *   onToggleDone?: () => void,
  * }} props
  */
 export function ActionsSheet({
@@ -67,6 +72,9 @@ export function ActionsSheet({
   onMove,
   onPin,
   onUnpin,
+  onTomorrow,
+  done,
+  onToggleDone,
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -91,6 +99,13 @@ export function ActionsSheet({
 
   return (
     <Sheet visible title={node.title} onClose={onClose}>
+      {leaf && onToggleDone ? (
+        <Item
+          icon={<Check {...ic} />}
+          label={t(done ? 'actions.undone' : 'actions.done')}
+          onPress={run(onToggleDone)}
+        />
+      ) : null}
       <Item icon={<Pencil {...ic} />} label={t('actions.rename')} onPress={run(onRename)} />
       {leaf ? (
         <Item
@@ -105,28 +120,35 @@ export function ActionsSheet({
       {leaf && node.pinnedStartMin !== null && onUnpin ? (
         <Item icon={<PinOff {...ic} />} label={t('actions.unpin')} onPress={run(onUnpin)} />
       ) : null}
-      {node.kind === 'task' ? (
+      {leaf && onTomorrow ? (
+        <Item
+          icon={<CalendarArrowDown {...ic} />}
+          label={t('actions.scheduleTomorrow')}
+          onPress={run(onTomorrow)}
+        />
+      ) : null}
+      {node.kind === 'task' && onAddSubtask ? (
         <Item
           icon={<CornerDownRight {...ic} />}
           label={t('actions.addSubtask')}
           onPress={run(onAddSubtask)}
         />
       ) : null}
-      {prev ? (
+      {onMove && prev ? (
         <Item
           icon={<ArrowUp {...ic} />}
           label={t('actions.moveUp')}
           onPress={run(() => onMove({ kind: 'before', id: prev.id }))}
         />
       ) : null}
-      {next ? (
+      {onMove && next ? (
         <Item
           icon={<ArrowDown {...ic} />}
           label={t('actions.moveDown')}
           onPress={run(() => onMove({ kind: 'after', id: next.id }))}
         />
       ) : null}
-      {node.kind === 'task'
+      {onMove && node.kind === 'task'
         ? groups.map((g) => (
             <Item
               key={g.id}

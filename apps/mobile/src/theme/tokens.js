@@ -14,6 +14,9 @@ export const colors = {
     danger: '#B3261E',
     ok: '#1F7A4D',
     busy: '#DDE2E8',
+    lightInk: '#16202A',
+    peakBg: 'rgba(47,63,160,0.08)',
+    peakLine: 'rgba(47,63,160,0.4)',
   },
   dark: {
     bg: '#12171D',
@@ -28,6 +31,9 @@ export const colors = {
     danger: '#FF8A80',
     ok: '#6FD3A0',
     busy: '#26303A',
+    lightInk: '#16202A',
+    peakBg: 'rgba(138,151,255,0.09)',
+    peakLine: 'rgba(138,151,255,0.45)',
   },
 };
 

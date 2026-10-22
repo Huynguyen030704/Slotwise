@@ -37,6 +37,8 @@ export default {
     selectGroup: 'Add to',
   },
   actions: {
+    done: 'Mark as done',
+    undone: 'Mark as not done',
     rename: 'Rename',
     edit: 'Edit duration and energy',
     delete: 'Delete',
@@ -88,6 +90,12 @@ export default {
     dropHint: 'Drop here to pin a time',
     prevDay: 'Previous day',
     nextDay: 'Next day',
+    reject: 'Could not pin: {{reason}}',
+    dragToUnpin: 'Drag here to unpin',
+    peakToggle: 'Peak hours',
+    morning: 'Morning',
+    afternoon: 'Afternoon',
+    cancelledDrag: 'Drag cancelled',
     backToToday: 'Back to today',
   },
 };

@@ -13,6 +13,7 @@ import {
 import '../src/i18n';
 import { ThemeProvider, useTheme } from '../src/theme/ThemeProvider';
 import { NodesProvider } from '../src/data/NodesProvider';
+import { SettingsProvider } from '../src/data/SettingsProvider';
 
 function Shell() {
   const { colors, scheme } = useTheme();
@@ -51,9 +52,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <NodesProvider>
-            <Shell />
-          </NodesProvider>
+          <SettingsProvider>
+            <NodesProvider>
+              <Shell />
+            </NodesProvider>
+          </SettingsProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

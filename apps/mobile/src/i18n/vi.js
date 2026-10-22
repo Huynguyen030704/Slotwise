@@ -37,6 +37,8 @@ export default {
     selectGroup: 'Thêm vào',
   },
   actions: {
+    done: 'Đánh dấu xong',
+    undone: 'Bỏ đánh dấu xong',
     rename: 'Đổi tên',
     edit: 'Sửa thời lượng và mức năng lượng',
     delete: 'Xóa',
@@ -89,6 +91,12 @@ export default {
     dropHint: 'Thả vào đây để ghim giờ',
     prevDay: 'Ngày trước',
     nextDay: 'Ngày sau',
+    reject: 'Không ghim được: {{reason}}',
+    dragToUnpin: 'Kéo ra đây để bỏ ghim',
+    peakToggle: 'Giờ tỉnh táo',
+    morning: 'Sáng',
+    afternoon: 'Chiều',
+    cancelledDrag: 'Đã hủy kéo',
     backToToday: 'Về hôm nay',
   },
 };
