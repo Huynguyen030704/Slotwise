@@ -4,6 +4,7 @@ export { parseNotes } from './parseNotes.js';
 export { positionBetween, initialPositions } from './position.js';
 export {
   childrenOf,
+  dropTargetAt,
   flatten,
   isDone,
   isLeaf,

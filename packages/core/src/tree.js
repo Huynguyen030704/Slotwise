@@ -278,3 +278,31 @@ export function visibleRows(nodes) {
   walk(null, 0);
   return out;
 }
+
+/**
+ * Where would a dragged row land if released over another row? `fraction` is the pointer's
+ * vertical position inside that row (0 = top edge, 1 = bottom edge). Returns null when the drop
+ * is not allowed (self, own subtree, groups onto tasks).
+ * @param {TreeNode[]} nodes
+ * @param {string} draggedId
+ * @param {string} overId
+ * @param {number} fraction
+ * @returns {DropTarget | null}
+ */
+export function dropTargetAt(nodes, draggedId, overId, fraction) {
+  const dragged = nodes.find((n) => n.id === draggedId);
+  const over = nodes.find((n) => n.id === overId);
+  if (!dragged || !over || dragged.id === over.id) return null;
+  const side = fraction < 0.5 ? 'before' : 'after';
+  /** @type {DropTarget} */
+  let target;
+  if (dragged.kind === 'group') {
+    if (over.kind !== 'group') return null;
+    target = { kind: side, id: over.id };
+  } else if (over.kind === 'group') {
+    target = { kind: 'into', id: over.id };
+  } else {
+    target = { kind: side, id: over.id };
+  }
+  return moveNode(nodes, draggedId, target, '') === nodes ? null : target;
+}

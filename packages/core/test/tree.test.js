@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   childrenOf,
+  dropTargetAt,
   flatten,
   isDone,
   isLeaf,
@@ -294,5 +295,30 @@ describe('visibleRows', () => {
   it('hides everything below a collapsed node', () => {
     const nodes = sample().map((n) => (n.id === 'a' ? { ...n, collapsed: true } : n));
     expect(visibleRows(nodes).map((r) => r.node.id)).toEqual(['g1', 'a', 'b', 'g2', 'c', 'n']);
+  });
+});
+
+describe('dropTargetAt', () => {
+  it('drops a task onto a group name as into', () => {
+    expect(dropTargetAt(sample(), 'c', 'g1', 0.2)).toEqual({ kind: 'into', id: 'g1' });
+    expect(dropTargetAt(sample(), 'c', 'g1', 0.9)).toEqual({ kind: 'into', id: 'g1' });
+  });
+
+  it('uses the half of the row for before or after', () => {
+    expect(dropTargetAt(sample(), 'c', 'b', 0.2)).toEqual({ kind: 'before', id: 'b' });
+    expect(dropTargetAt(sample(), 'c', 'b', 0.5)).toEqual({ kind: 'after', id: 'b' });
+  });
+
+  it('orders groups only against groups', () => {
+    expect(dropTargetAt(sample(), 'g2', 'g1', 0.1)).toEqual({ kind: 'before', id: 'g1' });
+    expect(dropTargetAt(sample(), 'g1', 'g2', 0.9)).toEqual({ kind: 'after', id: 'g2' });
+    expect(dropTargetAt(sample(), 'g1', 'b', 0.5)).toBeNull();
+  });
+
+  it('rejects itself, its own subtree and unknown rows', () => {
+    expect(dropTargetAt(sample(), 'a', 'a', 0.5)).toBeNull();
+    expect(dropTargetAt(sample(), 'a', 'a1', 0.5)).toBeNull();
+    expect(dropTargetAt(sample(), 'zzz', 'b', 0.5)).toBeNull();
+    expect(dropTargetAt(sample(), 'a', 'zzz', 0.5)).toBeNull();
   });
 });

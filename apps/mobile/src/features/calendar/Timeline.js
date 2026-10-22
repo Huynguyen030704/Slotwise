@@ -8,6 +8,7 @@ import { AppText } from '../../ui/AppText';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing } from '../../theme/tokens';
 import { formatClock } from '../../lib/format';
+import { registerDropTarget } from '../../lib/dragBus';
 
 export const PPM = 1.4; // pixels per minute
 const GUTTER = 52;
@@ -67,10 +68,11 @@ export function Timeline({
   const scrollRef = useRef(/** @type {any} */ (null));
   const frameRef = useRef(/** @type {any} */ (null));
   const scrollY = useRef(0);
-  const frame = useRef({ top: 0, bottom: 0 });
+  const frame = useRef({ top: 0, bottom: 0, left: 0, right: 0 });
+  const gridY = useRef(0);
   const lastDrag = useRef(0);
   const session = useRef(
-    /** @type {null | { id: string, orig: number, duration: number, pinned: boolean, scroll0: number, dy: number, absY: number, cancelled: boolean, scrollDir: number }} */ (
+    /** @type {null | { id: string, orig: number, duration: number, pinned: boolean, scroll0: number, dy: number, absY: number, absX: number, cancelled: boolean, scrollDir: number }} */ (
       null
     ),
   );
@@ -107,7 +109,7 @@ export function Timeline({
       workStartMin,
       Math.min(workEndMin - s.duration, snapToGrid(raw, GRID)),
     );
-    const unpin = s.pinned && s.absY < frame.current.top;
+    const unpin = s.pinned && (s.absY < frame.current.top || s.absX < frame.current.left);
     setDrag({
       id: s.id,
       startMin,
@@ -137,36 +139,45 @@ export function Timeline({
     [t],
   );
 
-  const start = useCallback((/** @type {TaskBlock} */ b) => {
+  const measureFrame = useCallback(() => {
     frameRef.current?.measureInWindow(
       (
-        /** @type {number} */ _x,
+        /** @type {number} */ fx,
         /** @type {number} */ fy,
-        /** @type {number} */ _w,
+        /** @type {number} */ fw,
         /** @type {number} */ fh,
       ) => {
-        frame.current = { top: fy, bottom: fy + fh };
+        frame.current = { top: fy, bottom: fy + fh, left: fx, right: fx + fw };
       },
     );
-    session.current = {
-      id: b.node.id,
-      orig: b.startMin,
-      duration: b.node.durationMin,
-      pinned: b.node.pinnedStartMin !== null,
-      scroll0: scrollY.current,
-      dy: 0,
-      absY: 0,
-      cancelled: false,
-      scrollDir: 0,
-    };
   }, []);
 
+  const start = useCallback(
+    (/** @type {TaskBlock} */ b) => {
+      measureFrame();
+      session.current = {
+        id: b.node.id,
+        orig: b.startMin,
+        duration: b.node.durationMin,
+        pinned: b.node.pinnedStartMin !== null,
+        scroll0: scrollY.current,
+        dy: 0,
+        absY: 0,
+        absX: 0,
+        cancelled: false,
+        scrollDir: 0,
+      };
+    },
+    [measureFrame],
+  );
+
   const move = useCallback(
-    (/** @type {number} */ dy, /** @type {number} */ absY) => {
+    (/** @type {number} */ dy, /** @type {number} */ absY, /** @type {number} */ absX) => {
       const s = session.current;
       if (!s || s.cancelled) return;
       s.dy = dy;
       s.absY = absY;
+      s.absX = absX;
       s.scrollDir =
         absY < frame.current.top + EDGE && absY >= frame.current.top
           ? -1
@@ -190,7 +201,7 @@ export function Timeline({
         workStartMin,
         Math.min(workEndMin - s.duration, snapToGrid(raw, GRID)),
       );
-      if (s.pinned && s.absY < frame.current.top) {
+      if (s.pinned && (s.absY < frame.current.top || s.absX < frame.current.left)) {
         onUnpin(s.id);
         return;
       }
@@ -239,6 +250,77 @@ export function Timeline({
     return () => window.removeEventListener('keydown', onKey);
   }, [drag]);
 
+  // Lets a drag from the task list preview and drop on this timeline (wide layout).
+  const latest = useRef({ blocks, busyFor, onPin, onReject, reasonText, t });
+  latest.current = { blocks, busyFor, onPin, onReject, reasonText, t };
+  useEffect(
+    () =>
+      registerDropTarget({
+        start: measureFrame,
+        hover: (x, yy, p) => {
+          const f = frame.current;
+          if (!p.schedulable || x < f.left || x > f.right || yy < f.top || yy > f.bottom) {
+            return false;
+          }
+          const raw =
+            workStartMin +
+            (yy - (f.top - scrollY.current + gridY.current)) / PPM -
+            p.durationMin / 2;
+          const startMin = Math.max(
+            workStartMin,
+            Math.min(workEndMin - p.durationMin, snapToGrid(raw, GRID)),
+          );
+          setDrag({
+            id: p.id,
+            startMin,
+            duration: p.durationMin,
+            unpin: false,
+            placement: checkPlacement({
+              startMin,
+              durationMin: p.durationMin,
+              workStartMin,
+              workEndMin,
+              busy: latest.current.busyFor(p.id),
+            }),
+          });
+          return true;
+        },
+        leave: () => {
+          if (!session.current) setDrag(null);
+        },
+        drop: (x, yy, p) => {
+          const f = frame.current;
+          if (!p.schedulable || x < f.left || x > f.right || yy < f.top || yy > f.bottom) {
+            return false;
+          }
+          const raw =
+            workStartMin +
+            (yy - (f.top - scrollY.current + gridY.current)) / PPM -
+            p.durationMin / 2;
+          const startMin = Math.max(
+            workStartMin,
+            Math.min(workEndMin - p.durationMin, snapToGrid(raw, GRID)),
+          );
+          const placement = checkPlacement({
+            startMin,
+            durationMin: p.durationMin,
+            workStartMin,
+            workEndMin,
+            busy: latest.current.busyFor(p.id),
+          });
+          setDrag(null);
+          if (placement.ok) latest.current.onPin(p.id, startMin);
+          else {
+            latest.current.onReject(
+              latest.current.t('calendar.reject', { reason: latest.current.reasonText(placement) }),
+            );
+          }
+          return true;
+        },
+      }),
+    [measureFrame, workStartMin, workEndMin],
+  );
+
   const hours = [];
   for (let m = Math.ceil(workStartMin / 60) * 60; m <= workEndMin; m += 60) hours.push(m);
 
@@ -273,7 +355,12 @@ export function Timeline({
           contentContainerStyle={{ padding: spacing.lg, paddingBottom: 96, gap: spacing.md }}
         >
           {top}
-          <View style={{ height, marginTop: spacing.sm }}>
+          <View
+            style={{ height, marginTop: spacing.sm }}
+            onLayout={(e) => {
+              gridY.current = e.nativeEvent.layout.y;
+            }}
+          >
             {/* peak band */}
             <View
               pointerEvents="none"
@@ -359,7 +446,7 @@ export function Timeline({
                         .minDistance(6)
                         .runOnJS(true)
                         .onStart(() => start(b))
-                        .onUpdate((e) => move(e.translationY, e.absoluteY))
+                        .onUpdate((e) => move(e.translationY, e.absoluteY, e.absoluteX))
                         .onEnd((_e, success) => finish(success))
                         .onFinalize(() => {
                           if (session.current) finish(false);

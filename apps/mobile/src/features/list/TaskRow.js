@@ -26,6 +26,7 @@ import { formatClock, formatDuration } from '../../lib/format';
  *   onToggleDone: () => void,
  *   onToggleCollapse: () => void,
  *   onMore: () => void,
+ *   leading?: import('react').ReactNode,
  * }} props
  */
 export function TaskRow({
@@ -36,6 +37,7 @@ export function TaskRow({
   onToggleDone,
   onToggleCollapse,
   onMore,
+  leading,
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -55,6 +57,7 @@ export function TaskRow({
         paddingRight: spacing.xs,
       }}
     >
+      {leading}
       {hasChildren ? (
         <IconButton
           label={t(node.collapsed ? 'list.expand' : 'list.collapse', { title: node.title })}

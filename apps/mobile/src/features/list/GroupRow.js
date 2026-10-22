@@ -13,9 +13,10 @@ import { radius, spacing } from '../../theme/tokens';
  *   progress: { done: number, total: number },
  *   onToggleCollapse: () => void,
  *   onMore: () => void,
+ *   leading?: import('react').ReactNode,
  * }} props
  */
-export function GroupRow({ node, progress, onToggleCollapse, onMore }) {
+export function GroupRow({ node, progress, onToggleCollapse, onMore, leading }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const ratio = progress.total ? progress.done / progress.total : 0;
@@ -32,6 +33,7 @@ export function GroupRow({ node, progress, onToggleCollapse, onMore }) {
         paddingRight: spacing.xs,
       }}
     >
+      {leading}
       <IconButton
         label={t(node.collapsed ? 'list.expand' : 'list.collapse', { title: node.title })}
         onPress={onToggleCollapse}

@@ -267,7 +267,7 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 - [x] SQLite và lớp truy cập dữ liệu, lưu cây việc.
 - [x] Màn hình danh sách (cây nhóm, việc, việc con, tiến độ, thu gọn, sửa tên, xóa có hoàn tác).
 - [x] Màn hình lịch ngày với dữ liệu họp mẫu.
-- [ ] Kéo thả theo mục 9: đã có kéo khối trong lịch để ghim và kéo ra khỏi lịch để bỏ ghim (kèm menu "Ghim vào giờ…"). Còn thiếu: kéo việc từ danh sách vào lịch, kéo trong danh sách để đổi ưu tiên (đang có nút "Đưa lên/xuống" và "Chuyển vào nhóm"), chưa thử trên thiết bị thật.
+- [x] Kéo thả theo mục 9: kéo khối trong lịch để ghim, kéo ra khỏi lịch để bỏ ghim, kéo trong danh sách (trước/sau dòng, vào nhóm), kéo việc từ danh sách vào lịch (màn hình rộng từ 900dp, danh sách và lịch cạnh nhau). Điện thoại hẹp dùng menu "Ghim vào giờ…" và "Đưa lên/xuống". Chưa thử trên thiết bị thật.
 - [x] Nhập ghi chú, chế độ tập trung, tổng kết ngày và sao chép báo cáo.
 
 **Hoàn thành khi:** dùng trọn một ngày làm việc được hoàn toàn offline, không mất dữ liệu khi tắt mở app.
