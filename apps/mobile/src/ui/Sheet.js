@@ -1,6 +1,7 @@
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from './AppText';
+import { useKeyboardInset } from '../lib/useKeyboardInset';
 import { useTheme } from '../theme/ThemeProvider';
 import { radius, spacing } from '../theme/tokens';
 
@@ -10,6 +11,8 @@ import { radius, spacing } from '../theme/tokens';
  */
 export function Sheet({ visible, title, onClose, children }) {
   const { colors } = useTheme();
+  const keyboard = useKeyboardInset();
+  const { height } = useWindowDimensions();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable
@@ -26,7 +29,9 @@ export function Sheet({ visible, title, onClose, children }) {
           borderTopRightRadius: radius.lg,
           borderColor: colors.line,
           borderWidth: 1,
-          maxHeight: '80%',
+          // Above the keyboard when it is open, so the field being typed in stays in view.
+          marginBottom: keyboard,
+          maxHeight: keyboard ? Math.max(200, height - keyboard - 48) : '80%',
         }}
       >
         <ScrollView

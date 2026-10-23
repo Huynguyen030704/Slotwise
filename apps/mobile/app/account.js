@@ -21,6 +21,7 @@ import { exportNodes } from '../src/data/exportData';
 import { AuthForm } from '../src/features/auth/AuthForm';
 import { AppText } from '../src/ui/AppText';
 import { Button } from '../src/ui/Button';
+import { KeyboardSpacer } from '../src/ui/KeyboardSpacer';
 import { Sheet } from '../src/ui/Sheet';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { radius, spacing } from '../src/theme/tokens';
@@ -321,6 +322,7 @@ export default function AccountScreen() {
             </AppText>
           ) : null}
         </View>
+        <KeyboardSpacer />
       </ScrollView>
 
       <Sheet

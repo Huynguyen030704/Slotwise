@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import { KeyboardSpacer } from '../src/ui/KeyboardSpacer';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -48,7 +49,7 @@ export default function ImportScreen() {
           textAlignVertical="top"
           placeholder={t('import.placeholder')}
           accessibilityLabel={t('import.title')}
-          style={{ minHeight: 240, padding: spacing.md, fontSize: 15 }}
+          style={{ minHeight: 240, padding: spacing.md, fontSize: 16 }}
         />
         {message ? (
           <AppText tone="danger" accessibilityLiveRegion="polite">
@@ -59,6 +60,7 @@ export default function ImportScreen() {
           <Button title={t('common.cancel')} variant="secondary" onPress={close} />
           <Button title={t('import.submit')} onPress={submit} disabled={!text.trim()} />
         </View>
+        <KeyboardSpacer />
       </ScrollView>
     </SafeAreaView>
   );
