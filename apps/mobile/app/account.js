@@ -2,7 +2,17 @@ import { useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Download, LogOut, RefreshCw, Trash2 } from '../src/ui/icons';
+import {
+  AlertTriangle,
+  Check,
+  Cloud,
+  CloudOff,
+  Download,
+  Layers,
+  LogOut,
+  RefreshCw,
+  Trash2,
+} from '../src/ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../src/data/AuthProvider';
 import { useNodes } from '../src/data/NodesProvider';
@@ -14,6 +24,46 @@ import { Button } from '../src/ui/Button';
 import { Sheet } from '../src/ui/Sheet';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { radius, spacing } from '../src/theme/tokens';
+
+/** @param {{ children: import('react').ReactNode, danger?: boolean }} props */
+function Card({ children, danger }) {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={{
+        gap: spacing.md,
+        padding: spacing.lg,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: danger ? colors.danger : colors.line,
+        backgroundColor: colors.surface,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
+/** @param {{ icon: import('react').ReactNode, children: import('react').ReactNode }} props */
+function Benefit({ icon, children }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md }}>
+      <View style={{ marginTop: 2 }}>{icon}</View>
+      <AppText style={{ flex: 1 }} tone="muted">
+        {children}
+      </AppText>
+    </View>
+  );
+}
+
+const SYNC_TONE = /** @type {const} */ ({
+  signedOut: 'muted',
+  idle: 'ok',
+  syncing: 'accent',
+  offline: 'muted',
+  error: 'danger',
+  conflict: 'danger',
+});
 
 export default function AccountScreen() {
   const { t, i18n } = useTranslation();
@@ -39,22 +89,20 @@ export default function AccountScreen() {
     </View>
   );
 
-  const card = {
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
-  };
+  /** @type {import('react-native').ViewStyle} */
+  const column = { width: '100%', maxWidth: 560, alignSelf: 'center', gap: spacing.lg };
+  const scroll = { padding: spacing.lg };
 
   if (!auth.configured) {
     return (
       <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
-          {header}
-          <View style={card}>
-            <AppText tone="muted">{t('account.notConfigured')}</AppText>
+        <ScrollView contentContainerStyle={scroll}>
+          <View style={column}>
+            {header}
+            <Card>
+              <CloudOff size={28} color={colors.muted} />
+              <AppText tone="muted">{t('account.notConfigured')}</AppText>
+            </Card>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -64,8 +112,10 @@ export default function AccountScreen() {
   if (auth.loading) {
     return (
       <SafeAreaView style={{ flex: 1, padding: spacing.lg }}>
-        {header}
-        <ActivityIndicator accessibilityLabel="loading" color={colors.accent} />
+        <View style={column}>
+          {header}
+          <ActivityIndicator accessibilityLabel="loading" color={colors.accent} />
+        </View>
       </SafeAreaView>
     );
   }
@@ -76,103 +126,201 @@ export default function AccountScreen() {
         sync.lastSyncAt,
       )
     : null;
+  const tone = SYNC_TONE[sync.state];
+  const StateIcon =
+    sync.state === 'idle'
+      ? Check
+      : sync.state === 'syncing'
+        ? RefreshCw
+        : sync.state === 'offline'
+          ? CloudOff
+          : AlertTriangle;
+  const initial = (user?.email ?? '?').trim().charAt(0).toUpperCase();
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView
-        contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {header}
+      <ScrollView contentContainerStyle={scroll} keyboardShouldPersistTaps="handled">
+        <View style={column}>
+          {header}
 
-        {!user ? (
-          <View style={card}>
-            <AppText tone="muted">{t('account.intro')}</AppText>
-            <AuthForm />
-          </View>
-        ) : (
-          <>
-            <View style={card}>
-              <AppText tone="muted" size={13}>
-                {t('account.signedInAs')}
+          {!user ? (
+            <>
+              <Card>
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: radius.md,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: colors.peakBg,
+                  }}
+                >
+                  <Cloud size={26} color={colors.accent} />
+                </View>
+                <AppText weight="heading" size={20}>
+                  {t('account.introTitle')}
+                </AppText>
+                <Benefit icon={<Layers size={18} color={colors.accent} />}>
+                  {t('account.benefits.devices')}
+                </Benefit>
+                <Benefit icon={<CloudOff size={18} color={colors.accent} />}>
+                  {t('account.benefits.offline')}
+                </Benefit>
+                <Benefit icon={<Check size={18} color={colors.accent} />}>
+                  {t('account.benefits.merge')}
+                </Benefit>
+              </Card>
+              <Card>
+                <AuthForm />
+              </Card>
+              <AppText tone="muted" size={13} style={{ textAlign: 'center' }}>
+                {t('account.optional')}
               </AppText>
-              <AppText weight="bodyBold">{user.email ?? user.id}</AppText>
-              <AppText
-                tone={sync.state === 'error' ? 'danger' : sync.state === 'idle' ? 'ok' : 'muted'}
-              >
-                {t(`account.syncState.${sync.state}`)}
-              </AppText>
-              {lastSync ? (
+            </>
+          ) : (
+            <>
+              <Card>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <View
+                    accessibilityElementsHidden
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: colors.accent,
+                    }}
+                  >
+                    <AppText weight="heading" size={20} tone="accentInk">
+                      {initial}
+                    </AppText>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <AppText tone="muted" size={13}>
+                      {t('account.signedInAs')}
+                    </AppText>
+                    <AppText weight="bodyBold" numberOfLines={1}>
+                      {user.email ?? user.id}
+                    </AppText>
+                  </View>
+                </View>
+
+                <View
+                  accessibilityLiveRegion="polite"
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                    padding: spacing.md,
+                    borderRadius: radius.md,
+                    backgroundColor: colors.bg,
+                  }}
+                >
+                  <StateIcon size={18} color={colors[tone]} />
+                  <View style={{ flex: 1 }}>
+                    <AppText tone={tone} weight="bodyBold" size={14}>
+                      {t(`account.syncState.${sync.state}`)}
+                    </AppText>
+                    {lastSync ? (
+                      <AppText tone="muted" size={13}>
+                        {t('account.lastSync', { time: lastSync })}
+                      </AppText>
+                    ) : null}
+                    {sync.error && sync.state === 'error' ? (
+                      <AppText tone="danger" size={13}>
+                        {sync.error}
+                      </AppText>
+                    ) : null}
+                  </View>
+                </View>
+
+                <Button
+                  title={t('account.syncNow')}
+                  icon={<RefreshCw size={18} color={colors.accentInk} />}
+                  loading={sync.state === 'syncing'}
+                  onPress={sync.syncNow}
+                  disabled={sync.state === 'conflict'}
+                />
+              </Card>
+
+              {sync.state === 'conflict' ? (
+                <View accessibilityRole="alert">
+                  <Card danger>
+                    <AppText weight="bodyBold">{t('account.conflictTitle')}</AppText>
+                    <AppText tone="muted">{t('account.conflictBody')}</AppText>
+                    <Button
+                      title={t('account.export')}
+                      variant="secondary"
+                      icon={<Download size={18} color={colors.ink} />}
+                      onPress={() => exportNodes(nodes, t('account.exportFile'))}
+                    />
+                    <Button
+                      title={t('account.conflictReplace')}
+                      variant="danger"
+                      onPress={sync.replaceLocalWithAccount}
+                    />
+                    <Button
+                      title={t('account.signOut')}
+                      variant="secondary"
+                      onPress={auth.signOut}
+                    />
+                  </Card>
+                </View>
+              ) : null}
+
+              <Card>
+                <AppText weight="bodyBold">{t('account.dataTitle')}</AppText>
                 <AppText tone="muted" size={13}>
-                  {t('account.lastSync', { time: lastSync })}
+                  {t('account.exportHint')}
                 </AppText>
-              ) : null}
-              {sync.error && sync.state === 'error' ? (
-                <AppText tone="danger" size={13}>
-                  {sync.error}
-                </AppText>
-              ) : null}
-              <Button
-                title={t('account.syncNow')}
-                icon={<RefreshCw size={18} color={colors.accentInk} />}
-                onPress={sync.syncNow}
-                disabled={sync.state === 'syncing' || sync.state === 'conflict'}
-              />
-            </View>
-
-            {sync.state === 'conflict' ? (
-              <View style={[card, { borderColor: colors.danger }]} accessibilityRole="alert">
-                <AppText weight="bodyBold">{t('account.conflictTitle')}</AppText>
-                <AppText tone="muted">{t('account.conflictBody')}</AppText>
                 <Button
                   title={t('account.export')}
                   variant="secondary"
                   icon={<Download size={18} color={colors.ink} />}
-                  onPress={() => exportNodes(nodes, t('account.exportFile'))}
+                  onPress={async () => {
+                    await exportNodes(nodes, t('account.exportFile'));
+                    setMessage({
+                      text: t('account.exported', { count: nodes.length }),
+                      tone: 'ok',
+                    });
+                  }}
                 />
                 <Button
-                  title={t('account.conflictReplace')}
-                  variant="danger"
-                  onPress={sync.replaceLocalWithAccount}
+                  title={t('account.signOut')}
+                  variant="secondary"
+                  icon={<LogOut size={18} color={colors.ink} />}
+                  onPress={auth.signOut}
                 />
-                <Button title={t('account.signOut')} variant="secondary" onPress={auth.signOut} />
-              </View>
-            ) : null}
+                <AppText tone="muted" size={13}>
+                  {t('account.signOutHint')}
+                </AppText>
+              </Card>
 
-            <View style={card}>
-              <Button
-                title={t('account.export')}
-                variant="secondary"
-                icon={<Download size={18} color={colors.ink} />}
-                onPress={async () => {
-                  await exportNodes(nodes, t('account.exportFile'));
-                  setMessage({ text: t('account.exported', { count: nodes.length }), tone: 'ok' });
-                }}
-              />
-              <Button
-                title={t('account.signOut')}
-                variant="secondary"
-                icon={<LogOut size={18} color={colors.ink} />}
-                onPress={auth.signOut}
-              />
-              <AppText tone="muted" size={13}>
-                {t('account.signOutHint')}
-              </AppText>
-              <Button
-                title={t('account.delete')}
-                variant="danger"
-                icon={<Trash2 size={18} color={colors.accentInk} />}
-                onPress={() => setConfirmDelete(true)}
-              />
-            </View>
-          </>
-        )}
+              <Card danger>
+                <AppText weight="bodyBold" tone="danger">
+                  {t('account.dangerTitle')}
+                </AppText>
+                <AppText tone="muted" size={13}>
+                  {t('account.deleteHint')}
+                </AppText>
+                <Button
+                  title={t('account.delete')}
+                  variant="danger"
+                  icon={<Trash2 size={18} color={colors.accentInk} />}
+                  onPress={() => setConfirmDelete(true)}
+                />
+              </Card>
+            </>
+          )}
 
-        {message ? (
-          <AppText tone={message.tone} accessibilityLiveRegion="polite">
-            {message.text}
-          </AppText>
-        ) : null}
+          {message ? (
+            <AppText tone={message.tone} accessibilityLiveRegion="polite">
+              {message.text}
+            </AppText>
+          ) : null}
+        </View>
       </ScrollView>
 
       <Sheet
