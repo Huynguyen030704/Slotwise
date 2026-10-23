@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { peakWindow, planDay } from '@slotwise/core';
 import { useNodes } from '../../data/NodesProvider';
+import { localDate } from '../../data/time';
 import { useSettings } from '../../data/SettingsProvider';
 
 /**
@@ -24,7 +25,14 @@ export function useDayPlan(date) {
       endMin: b.endMin,
     }));
     const peakBlock = peakWindow(settings);
-    const plan = planDay(nodes, { date, peak: peakBlock, fixed, workStartMin, workEndMin });
+    const plan = planDay(nodes, {
+      date,
+      today: localDate(),
+      peak: peakBlock,
+      fixed,
+      workStartMin,
+      workEndMin,
+    });
     /** @type {import('./Timeline').TaskBlock[]} */
     const blocks = [
       ...plan.tasks

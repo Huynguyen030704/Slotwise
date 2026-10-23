@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Coffee, Users } from '../../ui/icons';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
 import { AppText } from '../../ui/AppText';
+import { Input } from '../../ui/Input';
 import { TimeStepper } from '../../ui/TimeStepper';
 import { useTheme } from '../../theme/ThemeProvider';
-import { MIN_TOUCH, fonts, radius, spacing } from '../../theme/tokens';
+import { MIN_TOUCH, radius, spacing } from '../../theme/tokens';
 
 const STEP = 15;
 
@@ -88,24 +89,12 @@ export function BlockSheet({ open, block, workStartMin, workEndMin, onSave, onCl
         <AppText size={14} weight="bodyMedium">
           {t('prefs.blockName')}
         </AppText>
-        <TextInput
+        <Input
           value={label}
           onChangeText={setLabel}
           maxLength={40}
           accessibilityLabel={t('prefs.blockName')}
           placeholder={t(`calendar.${kind}`)}
-          placeholderTextColor={colors.muted}
-          style={{
-            minHeight: MIN_TOUCH,
-            borderWidth: 1,
-            borderColor: colors.line,
-            borderRadius: radius.md,
-            paddingHorizontal: spacing.md,
-            color: colors.ink,
-            backgroundColor: colors.surface,
-            fontFamily: fonts.body,
-            fontSize: 16,
-          }}
         />
       </View>
       <TimeStepper

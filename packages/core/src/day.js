@@ -62,11 +62,13 @@ export function checkPlacement({
  */
 
 /**
- * Plan one day from the tree. Finished tasks that remember their start time keep their place,
+ * Plan one day from the tree. When `date` is `today`, open tasks left over from earlier days are
+ * planned too, so nothing slips out of the calendar. Finished tasks that remember their start time keep their place,
  * pinned tasks keep theirs, the rest are auto-scheduled.
  * @param {TreeNode[]} nodes
  * @param {{
  *   date: string,
+ *   today?: string,
  *   peak: Block,
  *   fixed: Block[],
  *   workStartMin?: number,
@@ -81,7 +83,12 @@ export function planDay(nodes, opts) {
   const doneTasks = ls.filter(
     (l) => l.status === 'done' && l.doneDate === date && typeof l.doneStartMin === 'number',
   );
-  const tasks = ls.filter((l) => l.status !== 'done' && l.scheduledDate === date);
+  const overdue = opts.today === date;
+  const tasks = ls.filter(
+    (l) =>
+      l.status !== 'done' &&
+      (l.scheduledDate === date || (overdue && !!l.scheduledDate && l.scheduledDate < date)),
+  );
   /** @type {Record<string, number>} */
   const doneSlots = {};
   for (const d of doneTasks) doneSlots[d.id] = /** @type {number} */ (d.doneStartMin);

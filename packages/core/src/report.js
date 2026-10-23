@@ -51,13 +51,15 @@ export function reportToText(report, labels) {
 }
 
 /**
- * Tasks planned for `date` that are still open.
+ * Tasks planned for `date` or earlier that are still open.
  * @param {TreeNode[]} nodes
  * @param {string} date
  * @returns {TreeNode[]}
  */
 export function unfinishedOn(nodes, date) {
-  return leaves(nodes).filter((l) => l.status !== 'done' && l.scheduledDate === date);
+  return leaves(nodes).filter(
+    (l) => l.status !== 'done' && !!l.scheduledDate && l.scheduledDate <= date,
+  );
 }
 
 /**

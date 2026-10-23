@@ -443,9 +443,9 @@ export function ListPane({ embedded = false }) {
         onPin={byClock ? () => setPinning(menu) : undefined}
         onUnpin={byClock ? () => menu && api.update(menu, { pinnedStartMin: null }) : undefined}
         onToday={
-          byClock || menuNode?.scheduledDate === localDate()
+          menuNode?.scheduledDate === localDate()
             ? undefined
-            : () => menu && api.update(menu, { scheduledDate: localDate() })
+            : () => menu && api.update(menu, { scheduledDate: localDate(), pinnedStartMin: null })
         }
         onLater={byClock ? undefined : () => menu && api.update(menu, { scheduledDate: null })}
         onTomorrow={() =>

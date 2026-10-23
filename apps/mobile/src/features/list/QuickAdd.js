@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { FolderPlus, Plus } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
 import { AppText } from '../../ui/AppText';
 import { IconButton } from '../../ui/IconButton';
+import { Input } from '../../ui/Input';
 import { useTheme } from '../../theme/ThemeProvider';
-import { MIN_TOUCH, fonts, radius, spacing } from '../../theme/tokens';
+import { spacing } from '../../theme/tokens';
 
 /**
  * Add a task in one step (type + Enter) and pick which group it goes to.
@@ -62,27 +63,15 @@ export function QuickAdd({ groups, target, onTargetChange, onAddTask, onAddGroup
   return (
     <View style={{ gap: spacing.sm }}>
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-        <TextInput
+        <Input
           value={text}
           onChangeText={setText}
           onSubmitEditing={addTask}
           returnKeyType="done"
           blurOnSubmit={false}
           placeholder={t('list.addTaskPlaceholder')}
-          placeholderTextColor={colors.muted}
           accessibilityLabel={t('list.addTaskPlaceholder')}
-          style={{
-            flex: 1,
-            minHeight: MIN_TOUCH,
-            borderWidth: 1,
-            borderColor: colors.line,
-            borderRadius: radius.md,
-            paddingHorizontal: spacing.md,
-            color: colors.ink,
-            backgroundColor: colors.surface,
-            fontFamily: fonts.body,
-            fontSize: 16,
-          }}
+          style={{ flex: 1 }}
         />
         <IconButton label={t('list.addGroup')} onPress={addGroup} disabled={!text.trim()}>
           <FolderPlus size={20} color={colors.ink} />

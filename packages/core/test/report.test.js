@@ -92,6 +92,7 @@ describe('reportToText', () => {
 describe('rollOver', () => {
   it('lists unfinished tasks of a date', () => {
     expect(unfinishedOn(nodes, '2026-10-22').map((n) => n.id)).toEqual(['b', 'loose']);
+    expect(unfinishedOn(nodes, '2026-10-23').map((n) => n.id)).toEqual(['b', 'c', 'loose']);
   });
 
   it('moves them to the next day and unpins them', () => {
@@ -103,7 +104,7 @@ describe('rollOver', () => {
   });
 
   it('returns the same array when nothing is open', () => {
-    const r = rollOver(nodes, '2030-01-01', 'T');
+    const r = rollOver(nodes, '2000-01-01', 'T');
     expect(r.count).toBe(0);
     expect(r.nodes).toBe(nodes);
   });

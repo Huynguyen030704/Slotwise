@@ -133,3 +133,26 @@ describe('planDay', () => {
     expect(planDay([/** @type {any} */ (t)], base).slots.a).toBe(480);
   });
 });
+
+describe('planDay with overdue tasks', () => {
+  const base = { date: DAY, peak: PEAKS.morning, fixed: [LUNCH] };
+  const nodes = [
+    task('old', { scheduledDate: '2026-10-20' }),
+    task('now'),
+    task('later', { scheduledDate: '2026-10-25' }),
+    task('none', { scheduledDate: null }),
+    task('done', { scheduledDate: '2026-10-20', status: 'done', doneDate: '2026-10-20' }),
+  ];
+
+  it('plans open tasks from earlier days when viewing today', () => {
+    const plan = planDay(nodes, { ...base, today: DAY });
+    expect(plan.tasks.map((t) => t.id)).toEqual(['now', 'old']);
+  });
+
+  it('keeps past days and future days to their own tasks', () => {
+    expect(planDay(nodes, { ...base, today: '2026-10-25' }).tasks.map((t) => t.id)).toEqual([
+      'now',
+    ]);
+    expect(planDay(nodes, base).tasks.map((t) => t.id)).toEqual(['now']);
+  });
+});

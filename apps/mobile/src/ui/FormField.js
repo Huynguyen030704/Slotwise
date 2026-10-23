@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { Platform, Pressable, TextInput, View } from 'react-native';
 import { Eye, EyeOff } from './icons';
 import { AppText } from './AppText';
 import { useTheme } from '../theme/ThemeProvider';
@@ -83,14 +83,17 @@ export const FormField = forwardRef(
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             placeholderTextColor={colors.muted}
-            style={{
-              flex: 1,
-              minHeight: MIN_TOUCH,
-              paddingHorizontal: spacing.md,
-              color: colors.ink,
-              fontFamily: fonts.body,
-              fontSize: 16,
-            }}
+            style={[
+              {
+                flex: 1,
+                minHeight: MIN_TOUCH,
+                paddingHorizontal: spacing.md,
+                color: colors.ink,
+                fontFamily: fonts.body,
+                fontSize: 16,
+              },
+              Platform.OS === 'web' ? /** @type {any} */ ({ outlineStyle: 'none' }) : null,
+            ]}
           />
           {password ? (
             <Pressable
