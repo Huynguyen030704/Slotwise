@@ -59,6 +59,7 @@ pnpm --filter @slotwise/core test      # Vitest + coverage, ngưỡng 100% cho s
 pnpm test                              # toàn bộ test: lõi (Vitest) và giao diện (Jest + Testing Library)
 pnpm --filter mobile test              # chỉ test giao diện (apps/mobile/src/**/*.test.js)
 pnpm --filter mobile web                  # chạy app trên trình duyệt (cũng có start, android, ios)
+EXPO_BASE_URL=/Slotwise pnpm --filter mobile export:web   # build web tĩnh cho GitHub Pages (apps/mobile/dist)
 cd apps/mobile && npx eas-cli login                         # một lần, cần tài khoản Expo
 cd apps/mobile && npx eas-cli build -p android --profile development   # development build (APK) trên đám mây
 pnpm --filter mobile start --dev-client                      # chạy Metro cho development build

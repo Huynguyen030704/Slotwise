@@ -18,17 +18,15 @@ Mục tiêu giai đoạn này: chạy thử bản web trên GitHub khi đã có 
 2. Bật **Confirm email** (xem `docs/supabase-setup.md` mục 3).
 3. Kiểm tra đăng ký bằng email (có thư xác nhận) và đăng nhập trên bản web đã triển khai.
 
-### C. Phía mã nguồn (tôi làm khi bạn đồng ý)
+### C. Phía mã nguồn (đã làm)
 
-Chưa có sẵn, cần thêm:
+1. **Đường dẫn con.** `apps/mobile/app.config.js` đọc biến `EXPO_BASE_URL` (workflow đặt thành `/Slotwise`) và gán vào `experiments.baseUrl`. Chạy máy phát triển hay build điện thoại thì biến này trống nên không ảnh hưởng.
+2. **Tải lại trang.** `scripts/export-web.mjs` sao chép `index.html` thành `404.html`, nên tải lại ở `/Slotwise/settings` vẫn vào được app.
+3. **Cô lập chéo nguồn.** SQLite trên web cần `SharedArrayBuffer`, tức là cần hai tiêu đề COOP và COEP mà GitHub Pages không cho đặt. `public/coi-sw.js` là một service worker nhỏ tự thêm hai tiêu đề này, và script xuất web chèn nó vào `index.html`. Lần đầu vào trang, trình duyệt tải lại một lần. Nếu sau này gặp rắc rối, đổi sang Cloudflare Pages hoặc Netlify với tệp `_headers` là cách bỏ service worker.
+4. **Workflow:** `.github/workflows/deploy-web.yml` chạy khi đẩy lên `main` hoặc bấm tay (Actions > Deploy web > Run workflow).
+5. Đã kiểm tra bản build dưới `/Slotwise/`: trang và tài nguyên tải đúng. **Chưa kiểm chứng được service worker** (khung xem trước của Claude chặn đăng ký service worker), nên cần thử trên Chrome thật sau khi triển khai: mở trang, tải lại một lần, rồi gõ `crossOriginIsolated` ở Console, kết quả phải là `true`.
 
-1. **Đường dẫn con.** Trang nằm ở `/Slotwise/` chứ không phải gốc, nên cần `experiments.baseUrl` trong `app.json` để mọi tài nguyên và liên kết đúng.
-2. **Điều hướng khi tải lại trang.** GitHub Pages không có "SPA fallback". Cần sao chép `index.html` thành `404.html` để tải lại ở `/Slotwise/settings` vẫn vào được app.
-3. **Tiêu đề cô lập chéo nguồn (rất quan trọng).** SQLite trên web dùng `SharedArrayBuffer`, trình duyệt chỉ cho phép khi trang gửi `Cross-Origin-Opener-Policy: same-origin` và `Cross-Origin-Embedder-Policy: credentialless`. Server phát triển đã bật sẵn, nhưng **GitHub Pages không cho đặt tiêu đề tùy ý**. Hai hướng:
-   - Dùng `coi-serviceworker` (một service worker nhỏ tự thêm các tiêu đề này; lần đầu vào trang sẽ tải lại một lần).
-   - Hoặc dùng nơi lưu trữ tĩnh cho phép đặt tiêu đề (Cloudflare Pages, Netlify, Vercel đều miễn phí, chỉ cần một tệp `_headers`). Nếu muốn dùng GitHub thì cũng có thể để GitHub chỉ chứa mã, còn Cloudflare Pages kéo mã từ GitHub để phát trang.
-4. **Workflow triển khai:** `.github/workflows/deploy-web.yml` (cài gói, `expo export --platform web`, đăng lên Pages).
-5. Kiểm tra bản build thật (không phải bản phát triển), gồm đồng bộ hai tab/hai máy.
+Chạy thử bản build ở máy: `EXPO_BASE_URL=/Slotwise pnpm --filter mobile export:web`, kết quả nằm ở `apps/mobile/dist`.
 
 ### D. Việc còn thiếu trước khi mở cho người khác dùng
 
