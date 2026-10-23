@@ -1,29 +1,30 @@
-# 0001. Tech stack for Milestone 0
+# 0001. Công nghệ cho Milestone 0
 
-Status: accepted (2026-10-22)
+Trạng thái: đã chấp nhận (2026-10-22)
 
-## Context
+## Bối cảnh
 
-Slotwise needs a testable core (scheduler and notes parser) before any UI exists. The owner chose JavaScript instead of TypeScript.
+Slotwise cần một lõi nghiệp vụ kiểm thử được (thuật toán xếp lịch và bộ đọc ghi chú) trước khi có giao diện. Chủ dự án chọn JavaScript thay cho TypeScript.
 
-## Decision
+## Quyết định
 
-- Language: JavaScript (ESM), no `.ts` files.
-- Type safety: JSDoc `@typedef` annotations checked by `tsc --checkJs --noEmit` in `strict` mode. `typescript` is a devDependency used only for checking.
+- Ngôn ngữ: JavaScript (ESM), không có tệp `.ts`.
+- An toàn kiểu: chú thích JSDoc `@typedef`, kiểm tra bằng `tsc --checkJs --noEmit` ở chế độ `strict`. `typescript` chỉ là devDependency dùng để kiểm tra.
 - Monorepo: pnpm workspaces (`apps/*`, `packages/*`). Node >= 22.
-- Tests: Vitest with v8 coverage. 100% threshold on `schedule.js` and `parseNotes.js`.
-- Lint/format: ESLint 9 flat config + `eslint-plugin-jsdoc`, Prettier (Markdown excluded).
-- CI: GitHub Actions running lint, typecheck, format check and tests on every PR.
-- Deferred: Expo app (M1), Supabase (M2), AI (M4). Stack in `CLAUDE.md` section 3 remains the plan for those.
-- Commit messages follow the owner's global convention (Conventional Commits, Vietnamese description), which overrides the English rule in `CLAUDE.md` section 2.
+- Kiểm thử: Vitest kèm độ phủ v8, ngưỡng 100% cho các tệp lõi.
+- Lint và định dạng: ESLint 9 (flat config) + `eslint-plugin-jsdoc`, Prettier (không áp dụng cho tệp Markdown).
+- CI: GitHub Actions chạy lint, typecheck, kiểm tra định dạng và test cho mỗi PR.
+- Hoãn lại: app Expo (M1), Supabase (M2), AI (M4). Công nghệ ở mục 3 của `CLAUDE.md` vẫn là kế hoạch cho các phần này.
+- Commit message theo quy ước chung của chủ dự án: Conventional Commits, phần mô tả bằng tiếng Việt.
+- Ngôn ngữ tài liệu: từ 2026-10-23 tài liệu kỹ thuật viết bằng **tiếng Việt** (xem mục 2 của `CLAUDE.md`). Mã nguồn, tên biến và tên nhánh vẫn bằng tiếng Anh.
 
-## Differences from the prototype parser
+## Khác biệt so với bộ đọc ghi chú trong prototype
 
-- Output uses `TreeNode` field names (`parentId`, `durationMin`, `doLast`, `status`) instead of prototype short names.
-- Returns `{ nodes, skippedLines }` so callers can report ignored lines, as the spec requires. The prototype silently dropped them.
-- `scheduledDate` is `null` after parsing; the caller assigns the day.
+- Kết quả dùng tên trường của `TreeNode` (`parentId`, `durationMin`, `doLast`, `status`) thay cho tên rút gọn trong prototype.
+- Trả về `{ nodes, skippedLines }` để nơi gọi báo được những dòng bị bỏ qua, đúng như đặc tả. Prototype bỏ qua âm thầm.
+- `scheduledDate` là `null` sau khi đọc; nơi gọi tự gán ngày.
 
-## Consequences
+## Hệ quả
 
-- No compile step, but type errors surface in CI via `checkJs`.
-- Moving to TypeScript later is mechanical (rename files, promote typedefs).
+- Không có bước biên dịch, nhưng lỗi kiểu vẫn bị bắt trong CI nhờ `checkJs`.
+- Chuyển sang TypeScript sau này khá đơn giản (đổi tên tệp, nâng `typedef` thành kiểu).

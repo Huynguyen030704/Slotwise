@@ -20,7 +20,7 @@ Thị trường đã có các công cụ tự xếp lịch (ví dụ Motion, Rec
 
 ## 2. Quy ước làm việc
 
-- **Ngôn ngữ:** trao đổi với chủ dự án bằng **tiếng Việt**. Mã nguồn, tên biến, tên nhánh, tài liệu kỹ thuật bằng **tiếng Anh**. Commit message dùng Conventional Commits với phần mô tả **tiếng Việt** (xem ADR 0001). Chuỗi hiển thị cho người dùng nằm trong tệp i18n, không viết cứng trong component.
+- **Ngôn ngữ:** trao đổi với chủ dự án bằng **tiếng Việt**. Mã nguồn, tên biến và tên nhánh bằng **tiếng Anh**. **Tài liệu** (README, ADR trong `docs/decisions/`, hướng dẫn trong `docs/`) viết bằng **tiếng Việt**. Commit message dùng Conventional Commits với phần mô tả **tiếng Việt** (xem ADR 0001). Chuỗi hiển thị cho người dùng nằm trong tệp i18n, không viết cứng trong component.
 - **Lập kế hoạch trước:** với việc lớn hơn một sửa nhỏ, nêu kế hoạch ngắn và chờ chủ dự án đồng ý trước khi sửa nhiều tệp.
 - **Thay đổi nhỏ, rõ ràng:** mỗi commit một ý, mỗi PR một chủ đề. Dùng Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`).
 - **Kiểm thử trước với lõi nghiệp vụ:** mọi thay đổi trong `packages/core` phải có kiểm thử đơn vị. Không merge khi test đỏ.
@@ -71,6 +71,8 @@ supabase/migrations/  Schema SQL
 supabase/functions/   Edge Functions (proxy AI, đồng bộ lịch)
 docs/prototype/       Prototype HTML tham chiếu (không sửa, không import)
 docs/decisions/       ADR: một tệp markdown cho mỗi quyết định kỹ thuật
+docs/supabase-setup.md   Thiết lập Supabase (CLI, Google OAuth)
+docs/trien-khai-web.md    Triển khai bản web lên GitHub Pages, danh sách việc còn thiếu
 ```
 
 ## 6. Mô hình dữ liệu

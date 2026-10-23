@@ -1,22 +1,22 @@
-# 0002. Mobile app stack (Milestone 1)
+# 0002. Công nghệ cho app (Milestone 1)
 
-Status: accepted (2026-10-22)
+Trạng thái: đã chấp nhận (2026-10-22)
 
-## Decision
+## Quyết định
 
-- Expo SDK 58, Expo Router (file-based routing in `apps/mobile/app`), React Native 0.88, JavaScript + JSDoc.
-- Styling: React Native `StyleSheet` driven by design tokens in `src/theme/tokens.js` (CLAUDE.md section 10). No Ant Design or Tailwind: they target the web DOM, and this app is React Native first.
-- Theme: `ThemeProvider` with `system | light | dark`, follows the OS and has a manual toggle.
-- i18n: `i18next` + `react-i18next`, Vietnamese default, English ready. Strings live in `src/i18n/*.js`.
-- Icons: `lucide-react-native`. Fonts: Bricolage Grotesque (headings), Be Vietnam Pro (body).
-- Local data: `expo-sqlite`. Gestures: `react-native-gesture-handler` + `react-native-reanimated`.
-- pnpm uses `node-linker=hoisted` (`.npmrc`) because Metro does not resolve pnpm's symlinked layout reliably.
-- Development check runs on the web target first (`pnpm --filter mobile web`).
+- Expo SDK 58, Expo Router (định tuyến theo tệp trong `apps/mobile/app`), React Native 0.88, JavaScript + JSDoc.
+- Kiểu dáng: `StyleSheet` của React Native, dùng token thiết kế trong `src/theme/tokens.js` (mục 10 của CLAUDE.md). Không dùng Ant Design hay Tailwind vì chúng nhắm tới DOM của web, còn app này ưu tiên React Native.
+- Giao diện sáng/tối: `ThemeProvider` với `system | light | dark`, theo hệ điều hành và có nút chuyển.
+- Đa ngôn ngữ: `i18next` + `react-i18next`, mặc định tiếng Việt, sẵn tiếng Anh. Chuỗi hiển thị nằm trong `src/i18n/*.js`.
+- Biểu tượng: `lucide-react-native`, nhập từng biểu tượng qua `src/ui/icons.js` (nhập từ gói gốc sẽ kéo cả ~1900 biểu tượng vào bản dev). Phông chữ: Bricolage Grotesque (tiêu đề), Be Vietnam Pro (nội dung).
+- Dữ liệu cục bộ: `expo-sqlite`. Cử chỉ: `react-native-gesture-handler`.
+- pnpm dùng `node-linker=hoisted` (`.npmrc`) vì Metro không xử lý ổn định cấu trúc liên kết tượng trưng của pnpm.
+- Kiểm tra giai đoạn đầu chạy trên web (`pnpm --filter mobile web`).
 
-## Known limits at the end of Milestone 1
+## Giới hạn hiện tại
 
-- Drag and drop: blocks on the day timeline drag to pin a time (green/red preview with reason, 15-minute snap, auto-scroll near edges, Escape cancels on web) and drag above or left of the timeline to unpin. Task rows drag by their grip to reorder (insertion line before/after a row, outline when dropping into a group; rules in `dropTargetAt` in core) and, when the list and the day share one screen, drag onto the timeline to pin. The two panes talk through `src/lib/dragBus.js`.
-- Layout: from 900dp wide the list and the day sit side by side on the first tab and the Day tab is hidden (`src/lib/layout.js`). On narrow phones the day is a separate tab, so list-to-calendar drag is not possible there; the list menu offers "Pin to a time…", "Move up/down" and "Move into group" instead. The calendar does not auto-scroll while a list row is dragged over it.
-- Touch drags start from the grip only; the mouse drags the whole block. The drag uses `react-native-gesture-handler` with JS callbacks (no Reanimated worklets yet). It was exercised on the web target only, not on a physical device.
-- Meetings and lunch on the calendar are sample data (`features/calendar/sampleDay.js`) until the Milestone 3 calendar integration.
-- Working hours are fixed at 08:00-18:00; only the peak window (morning/afternoon) is configurable, stored in the `user_settings` table.
+- **Kéo thả:** khối trên lịch kéo để ghim giờ (xem trước xanh/đỏ kèm lý do, bám lưới 15 phút, tự cuộn gần mép, Esc để hủy trên web) và kéo lên trên hoặc sang trái lịch để bỏ ghim. Dòng việc kéo bằng biểu tượng chấm để đổi thứ tự (vạch chèn trước/sau dòng, khung viền khi thả vào nhóm; luật nằm trong `dropTargetAt` ở core), và khi danh sách và lịch cùng một màn hình thì kéo được việc sang lịch để ghim. Hai khung giao tiếp qua `src/lib/dragBus.js`.
+- **Bố cục:** từ độ rộng 900dp danh sách và lịch nằm cạnh nhau ở tab đầu, tab Lịch bị ẩn (`src/lib/layout.js`). Trên điện thoại hẹp, lịch là tab riêng nên không kéo từ danh sách sang lịch được; thay vào đó dùng menu "Ghim vào giờ…", "Đưa lên/xuống" và "Chuyển vào nhóm". Lịch chưa tự cuộn khi kéo dòng việc qua.
+- Cảm ứng kéo từ biểu tượng chấm; chuột kéo được cả khối. Việc kéo dùng `react-native-gesture-handler` với hàm gọi lại chạy ở luồng JS. Mới thử trên web, chưa thử trên thiết bị thật.
+- Họp trên lịch chưa lấy từ lịch ngoài (Milestone 3). Giờ làm việc, giờ tỉnh táo và khung giờ cố định do người dùng tự cấu hình trong Thiết lập (lưu ở bảng `user_settings`, đồng bộ theo tài khoản).
+- **Web:** SQLite trên web dùng `SharedArrayBuffer`, nên nơi lưu trữ phải gửi hai tiêu đề `Cross-Origin-Opener-Policy: same-origin` và `Cross-Origin-Embedder-Policy: credentialless`. Server phát triển đã bật sẵn trong `metro.config.js`; khi triển khai thật phải cấu hình tương đương (xem `docs/trien-khai-web.md`).

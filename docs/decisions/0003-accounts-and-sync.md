@@ -1,27 +1,27 @@
-# 0003. Accounts and sync (Milestone 2)
+# 0003. Tài khoản và đồng bộ (Milestone 2)
 
-Status: accepted (2026-10-22)
+Trạng thái: đã chấp nhận (2026-10-22)
 
-## Decision
+## Quyết định
 
-- **Backend:** Supabase (Postgres, Auth, RLS, Edge Functions). Schema lives in `supabase/migrations/` and is applied with the Supabase CLI (`db push`).
-- **Sign-in:** Google first (OAuth with PKCE), email + password as a second option. Apple later.
-- **Tables:** `profiles`, `user_settings`, `tree_nodes` (plus `calendar_accounts`, `calendar_events` for M3), all with RLS `user_id = auth.uid()`. The hosted project already had this baseline (cursor column `server_updated_at`); `20261022000000_init.sql` documents it and `20261022010000_sync.sql` adds what sync needs: the missing `server_updated_at` triggers, dropping the `parent_id` foreign key (batches arrive in any order) and the `push_tree_nodes` RPC. New users get a profile and default settings from a trigger. `tree_nodes` and `user_settings` are synced.
-- **Sync model (offline-first):** SQLite stays the source the UI reads and writes. Each local row has a `dirty` flag (SQLite schema v2). A sync does:
-  1. **Pull:** rows with `server_updated_at >= cursor` (server clock, set by a trigger), ordered, in pages. Merge with `mergeRemote` in `packages/core`: a remote row replaces the local one only if its `updated_at` is strictly newer; otherwise the local row stays.
-  2. **Push:** all dirty rows in batches through the `push_tree_nodes` RPC, which upserts and only overwrites a stored row when the incoming `updated_at` is newer. Then `dirty` is cleared for rows not edited again meanwhile.
-  3. If the pull changed anything, the UI reloads from SQLite.
-- **Triggers:** sign-in, local edits (debounced 3 s), app back to the foreground, network back (web).
-- **Deletes:** soft deletes (`deleted_at`) sync like any other change.
-- **First sign-in:** local data on the device is merged into the account (it is all dirty, so it gets pushed). The device is bound to the account in the `sync_user` setting. Signing in with a different account on a device that still holds another account's data asks for confirmation before the local data is removed.
-- **Export and delete account:** export builds a JSON file of all local nodes (web downloads it, native uses the share sheet). Deleting an account calls the `delete-account` Edge Function, which identifies the caller from the JWT and deletes the auth user; rows go with it (`on delete cascade`). Data on the device stays.
-- **Session storage:** web uses `localStorage`, native uses the `expo-sqlite` key-value store.
+- **Backend:** Supabase (Postgres, Auth, RLS, Edge Functions). Schema nằm trong `supabase/migrations/` và được áp bằng Supabase CLI (`db push`).
+- **Đăng nhập:** Google trước (OAuth với PKCE), email + mật khẩu là lựa chọn thứ hai. Apple để sau.
+- **Bảng:** `profiles`, `user_settings`, `tree_nodes` (cùng `calendar_accounts`, `calendar_events` cho M3), đều có RLS `user_id = auth.uid()`. Dự án trên Supabase đã có sẵn schema nền (cột con trỏ kéo là `server_updated_at`); `20261022000000_init.sql` ghi lại schema đó, còn `20261022010000_sync.sql` thêm những gì đồng bộ cần: các trigger `server_updated_at` còn thiếu, bỏ khóa ngoại `parent_id` (các lô đến không theo thứ tự) và hàm `push_tree_nodes`. Người dùng mới tự có hồ sơ và thiết lập mặc định nhờ trigger. `tree_nodes` và `user_settings` đều được đồng bộ.
+- **Mô hình đồng bộ (offline-first):** SQLite vẫn là nơi giao diện đọc và ghi. Mỗi dòng cục bộ có cờ `dirty` (schema SQLite v2). Một lần đồng bộ gồm:
+  1. **Kéo:** các dòng có `server_updated_at >= con trỏ` (giờ máy chủ, do trigger đặt), theo thứ tự, chia trang. Gộp bằng `mergeRemote` trong `packages/core`: dòng từ máy chủ chỉ thay dòng cục bộ nếu `updated_at` mới hơn hẳn; ngược lại giữ dòng cục bộ.
+  2. **Đẩy:** mọi dòng `dirty` theo lô qua hàm `push_tree_nodes`, hàm này chỉ ghi đè dòng đã lưu khi `updated_at` gửi lên mới hơn. Sau đó xóa cờ `dirty` cho các dòng không bị sửa lại trong lúc đó.
+  3. Nếu lần kéo có thay đổi, giao diện nạp lại từ SQLite.
+- **Thời điểm đồng bộ:** khi đăng nhập, sau mỗi lần sửa cục bộ (chờ 3 giây), khi app quay lại màn hình, khi có mạng lại (web).
+- **Xóa:** xóa mềm (`deleted_at`), đồng bộ như mọi thay đổi khác.
+- **Lần đăng nhập đầu:** dữ liệu cục bộ được gộp vào tài khoản (toàn bộ đều `dirty` nên được đẩy lên). Thiết bị gắn với tài khoản qua thiết lập `sync_user`. Nếu đăng nhập tài khoản khác trên thiết bị còn dữ liệu của tài khoản cũ, app hỏi xác nhận trước khi xóa dữ liệu cục bộ.
+- **Xuất dữ liệu và xóa tài khoản:** xuất tạo tệp JSON gồm mọi nút cục bộ (web tải về, điện thoại mở bảng chia sẻ). Xóa tài khoản gọi Edge Function `delete-account`, hàm này xác định người gọi từ JWT và xóa người dùng; các dòng đi theo (`on delete cascade`). Dữ liệu trên thiết bị vẫn còn.
+- **Lưu phiên đăng nhập:** web dùng `localStorage`, điện thoại dùng kho khóa-giá trị của `expo-sqlite`.
 
-## Differences from CLAUDE.md and known limits
+## Khác biệt so với CLAUDE.md và các giới hạn
 
-- CLAUDE.md asks for last-writer-wins **per field**. This implementation is **per row**: two devices editing different fields of the same task offline will keep only the newer whole row. Per-field merge needs per-field timestamps and a change log; it is a candidate for a later milestone.
-- Conflict resolution trusts device clocks (`updated_at`). A device with a wrong clock can win or lose unfairly. The server clock (`server_updated_at`) is only used as the pull cursor.
-- The auth token on native is stored unencrypted in SQLite. Moving it to `expo-secure-store` is planned before release.
-- Settings (`user_settings`: working hours, sharp half of the day, recurring blocks `fixed_blocks`) sync as one row per user. A copy edited on this device and not yet pushed always wins; otherwise the newer `updated_at` wins. The row is created with defaults at sign-up, so its timestamp says nothing about intent; that is why unpushed local edits take priority. Recurring blocks apply to every day (no per-weekday rules yet).
-- There is no sync change log for recovery yet (CLAUDE.md section 11 mentions one).
-- Email sign-up currently auto-confirms (project setting). Turn email confirmation on in the Supabase dashboard before launch.
+- CLAUDE.md yêu cầu ghi sau cùng thắng **theo từng trường**. Bản này làm **theo từng dòng**: hai thiết bị sửa hai trường khác nhau của cùng một việc lúc offline thì chỉ giữ dòng mới hơn. Gộp theo từng trường cần dấu thời gian cho từng trường và nhật ký thay đổi; để dành cho milestone sau.
+- Việc phân xử xung đột dựa vào đồng hồ thiết bị (`updated_at`). Máy sai giờ có thể thắng hoặc thua không công bằng. Giờ máy chủ (`server_updated_at`) chỉ dùng làm con trỏ kéo.
+- Token đăng nhập trên điện thoại đang lưu không mã hóa trong SQLite. Dự kiến chuyển sang `expo-secure-store` trước khi phát hành.
+- Thiết lập (`user_settings`: giờ làm việc, nửa ngày tỉnh táo, khung giờ cố định `fixed_blocks`, cách dùng `mode`) đồng bộ theo một dòng cho mỗi người. Bản sửa trên thiết bị này mà chưa đẩy lên luôn thắng; nếu không thì bản có `updated_at` mới hơn thắng. Dòng trên máy chủ được tạo với giá trị mặc định lúc đăng ký nên dấu thời gian của nó không nói lên ý định của người dùng; đó là lý do bản sửa cục bộ chưa đẩy được ưu tiên. Khung giờ cố định áp dụng mọi ngày (chưa có quy tắc theo thứ trong tuần).
+- Chưa có nhật ký đồng bộ để khôi phục (mục 11 của CLAUDE.md có nhắc).
+- Đăng ký bằng email hiện đang tự xác nhận (thiết lập của dự án). Bật xác nhận email trong bảng điều khiển Supabase trước khi mở cho người dùng.

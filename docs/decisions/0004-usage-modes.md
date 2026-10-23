@@ -1,22 +1,22 @@
-# 0004. Usage modes: plan by the clock, or just manage tasks
+# 0004. Hai cách dùng: xếp việc theo giờ, hoặc chỉ quản lý việc
 
-Status: accepted (2026-10-22)
+Trạng thái: đã chấp nhận (2026-10-22)
 
-## Context
+## Bối cảnh
 
-Slotwise was built around a timeline: tasks have a duration and an energy level and are placed into free time. Some people want exactly that; others only want task lists and no clock.
+Slotwise được xây quanh một dòng thời gian: mỗi việc có thời lượng và mức năng lượng, rồi được đặt vào khung giờ trống. Có người muốn đúng như vậy, có người chỉ muốn danh sách việc và không cần giờ giấc.
 
-## Decision
+## Quyết định
 
-- A per-account setting `mode`, stored in `user_settings.mode` (`'schedule' | 'tasks' | NULL`) and synced like the rest of the settings, so it follows the person to any device.
-- `NULL` means "not chosen yet" and behaves as `schedule`. Keeping it empty lets a choice made on the welcome screen before sign-up be adopted by a brand new account (`adoptLocalMode` in `packages/core/src/settings.js`), while an account that already has a mode always wins when you sign in on a new device.
-- **`schedule`** (default): list + day timeline, durations, energy, pinning, working hours, sharp hours and recurring blocks.
-- **`tasks`**: list + a **Today** view (`taskBuckets` in core: today, done today, tomorrow, later; tree order is the priority; open tasks from earlier days count as today). Durations, energy, pinning and the clock settings are hidden. Focus mode uses today's list in list order, without planned times. Menus offer "Do today", "Move to tomorrow" and "Do later" instead of the clock actions.
-- Task data is not touched when switching: durations, energy and pins stay stored, so switching back loses nothing. "Later" is `scheduledDate = null` (or further out than tomorrow).
-- The mode is chosen on the welcome screen (two cards) and can be changed in Settings at any time.
-- The database change is `20261022030000_settings_mode.sql`.
+- Một thiết lập theo tài khoản là `mode`, lưu ở `user_settings.mode` (`'schedule' | 'tasks' | NULL`) và đồng bộ như các thiết lập khác, nên đi theo người dùng sang mọi thiết bị.
+- `NULL` nghĩa là "chưa chọn" và hoạt động như `schedule`. Để trống giúp lựa chọn ở màn chào **trước khi đăng ký** được tài khoản mới nhận (`adoptLocalMode` trong `packages/core/src/settings.js`), còn tài khoản đã có chế độ thì luôn thắng khi đăng nhập trên máy mới.
+- **`schedule`** (mặc định): danh sách + lịch ngày, thời lượng, năng lượng, ghim giờ, giờ làm việc, giờ tỉnh táo và khung giờ cố định.
+- **`tasks`**: danh sách + màn **Hôm nay** (`taskBuckets` trong core: hôm nay, đã xong hôm nay, ngày mai, sau này; thứ tự trong cây là mức ưu tiên; việc chưa xong từ ngày trước tính là hôm nay). Ẩn thời lượng, năng lượng, ghim giờ và các thiết lập giờ giấc. Chế độ tập trung lấy việc hôm nay theo thứ tự danh sách, không có giờ dự kiến. Menu có "Làm hôm nay", "Dời sang ngày mai" và "Để sau" thay cho các thao tác theo giờ.
+- Dữ liệu việc không bị đổi khi chuyển chế độ: thời lượng, năng lượng và giờ ghim vẫn được lưu, nên chuyển lại không mất gì. "Sau này" là `scheduledDate = null` (hoặc xa hơn ngày mai).
+- Chế độ được chọn ở màn chào (hai thẻ) và đổi được bất cứ lúc nào trong Thiết lập.
+- Thay đổi cơ sở dữ liệu là `20261022030000_settings_mode.sql`.
 
-## Not included
+## Chưa làm
 
-- Due dates (deadlines) in `tasks` mode: CLAUDE.md keeps them out of the MVP. Buckets are Today / Tomorrow / Later only.
-- Dragging a task onto the Today view to change its day (the menu does it).
+- Ngày đến hạn (deadline) ở chế độ `tasks`: CLAUDE.md để ngoài phạm vi MVP. Các nhóm chỉ có Hôm nay / Ngày mai / Sau này.
+- Kéo việc sang màn Hôm nay để đổi ngày (hiện đổi qua menu).
