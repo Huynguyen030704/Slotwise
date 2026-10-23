@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { randomUUID } from 'expo-crypto';
 import { useTranslation } from 'react-i18next';
-import { MIN_WORK_SPAN, peakWindow } from '@slotwise/core';
+import { MIN_WORK_SPAN, describeDays, peakWindow } from '@slotwise/core';
 import { Coffee, Pencil, Plus, Trash2, Users } from '../src/ui/icons';
 import { useSettings } from '../src/data/SettingsProvider';
 import { BlockSheet } from '../src/features/settings/BlockSheet';
@@ -40,6 +40,16 @@ export default function SettingsScreen() {
     const id = setTimeout(() => setRemoved(null), 6000);
     return () => clearTimeout(id);
   }, [removed]);
+
+  const dayNames = /** @type {string[]} */ (t('prefs.dayNames', { returnObjects: true }));
+  /** @param {number[] | undefined} days */
+  const daysText = (days) => {
+    const d = describeDays(days);
+    if (d.kind === 'all') return t('prefs.daysAll');
+    if (d.kind === 'workdays') return t('prefs.daysWorkdays');
+    if (d.kind === 'weekend') return t('prefs.daysWeekend');
+    return d.days.map((n) => dayNames[n - 1]).join(', ');
+  };
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const peak = peakWindow(settings);
@@ -183,7 +193,7 @@ export default function SettingsScreen() {
                       <View style={{ flex: 1, paddingVertical: spacing.sm }}>
                         <AppText weight="bodyMedium">{name}</AppText>
                         <AppText size={13} tone="muted">
-                          {formatClock(b.startMin)}–{formatClock(b.endMin)}
+                          {formatClock(b.startMin)}–{formatClock(b.endMin)} · {daysText(b.days)}
                         </AppText>
                       </View>
                       <IconButton

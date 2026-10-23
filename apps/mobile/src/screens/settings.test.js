@@ -92,4 +92,50 @@ describe('Settings screen', () => {
     await fireEvent.press(screen.getByRole('radio', { name: /Xếp việc theo giờ/ }));
     await waitFor(() => expect(screen.getByText('Giờ làm việc')).toBeTruthy());
   });
+
+  it('limits a recurring block to chosen weekdays and says so in the list', async () => {
+    await open();
+    expect(screen.getByText(/12:00–13:00 · Mọi ngày/)).toBeTruthy();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Thêm khung giờ' }));
+    await fireEvent.changeText(await screen.findByLabelText('Tên (không bắt buộc)'), 'Giao ban');
+    for (const day of ['Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy', 'Chủ nhật']) {
+      await fireEvent.press(screen.getByRole('checkbox', { name: day }));
+    }
+    await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+
+    await waitFor(() => expect(screen.getByText('Giao ban')).toBeTruthy());
+    expect(saved().fixedBlocks.find((b) => b.label === 'Giao ban').days).toEqual([1]);
+    expect(screen.getByText(/· T2$/)).toBeTruthy();
+  });
+
+  it('will not save a block that applies on no day', async () => {
+    await open();
+    await fireEvent.press(screen.getByRole('button', { name: 'Thêm khung giờ' }));
+    for (const day of [
+      'Thứ hai',
+      'Thứ ba',
+      'Thứ tư',
+      'Thứ năm',
+      'Thứ sáu',
+      'Thứ bảy',
+      'Chủ nhật',
+    ]) {
+      await fireEvent.press(await screen.findByRole('checkbox', { name: day }));
+    }
+    expect(screen.getByText('Chọn ít nhất một ngày.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Lưu' }).props.accessibilityState.disabled).toBe(
+      true,
+    );
+  });
+
+  it('names common patterns instead of listing days', async () => {
+    await open();
+    await fireEvent.press(screen.getByRole('button', { name: 'Thêm khung giờ' }));
+    for (const day of ['Thứ bảy', 'Chủ nhật']) {
+      await fireEvent.press(await screen.findByRole('checkbox', { name: day }));
+    }
+    await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+    await waitFor(() => expect(screen.getByText(/Thứ 2 đến thứ 6/)).toBeTruthy());
+  });
 });

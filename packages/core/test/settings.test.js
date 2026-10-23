@@ -3,7 +3,10 @@ import {
   DEFAULT_SETTINGS,
   MAX_FIXED_BLOCKS,
   adoptLocalMode,
+  blocksForDate,
+  describeDays,
   effectiveMode,
+  isoWeekday,
   mergeSettings,
   normalizeSettings,
   peakWindow,
@@ -195,5 +198,50 @@ describe('usage mode', () => {
     expect(adoptLocalMode(empty, local).mode).toBe('tasks');
     expect(adoptLocalMode(chosen, local).mode).toBe('schedule');
     expect(adoptLocalMode(empty, DEFAULT_SETTINGS).mode).toBeNull();
+  });
+});
+
+describe('weekdays for recurring blocks', () => {
+  it('knows the ISO weekday of a date', () => {
+    expect(isoWeekday('2026-10-19')).toBe(1); // Monday
+    expect(isoWeekday('2026-10-23')).toBe(5); // Friday
+    expect(isoWeekday('2026-10-25')).toBe(7); // Sunday
+  });
+
+  it('keeps a clean sorted list of days and treats none or all as every day', () => {
+    const block = (/** @type {unknown} */ days) => ({
+      id: 'a',
+      kind: 'meeting',
+      startMin: 600,
+      endMin: 660,
+      days,
+    });
+    const get = (/** @type {unknown} */ days) =>
+      normalizeSettings({ fixedBlocks: [block(days)] }).fixedBlocks[0];
+    expect(get([5, 1, 1, 3]).days).toEqual([1, 3, 5]);
+    expect(get([0, 8, 2.5, 'x', 2]).days).toEqual([2]);
+    expect(get([]).days).toBeUndefined();
+    expect(get([1, 2, 3, 4, 5, 6, 7]).days).toBeUndefined();
+    expect(get('mon').days).toBeUndefined();
+    expect(get(undefined).days).toBeUndefined();
+  });
+
+  it('applies a block only on its days', () => {
+    const blocks = normalizeSettings({
+      fixedBlocks: [
+        { id: 'every', kind: 'lunch', startMin: 720, endMin: 780 },
+        { id: 'mon', kind: 'meeting', startMin: 540, endMin: 570, days: [1] },
+      ],
+    }).fixedBlocks;
+    expect(blocksForDate(blocks, '2026-10-19').map((b) => b.id)).toEqual(['every', 'mon']);
+    expect(blocksForDate(blocks, '2026-10-20').map((b) => b.id)).toEqual(['every']);
+  });
+
+  it('describes common patterns', () => {
+    expect(describeDays(undefined)).toEqual({ kind: 'all' });
+    expect(describeDays([1, 2, 3, 4, 5])).toEqual({ kind: 'workdays' });
+    expect(describeDays([6, 7])).toEqual({ kind: 'weekend' });
+    expect(describeDays([1, 3])).toEqual({ kind: 'list', days: [1, 3] });
+    expect(describeDays([1, 2, 3, 4])).toEqual({ kind: 'list', days: [1, 2, 3, 4] });
   });
 });

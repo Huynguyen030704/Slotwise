@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { peakWindow, planDay } from '@slotwise/core';
+import { blocksForDate, peakWindow, planDay } from '@slotwise/core';
 import { useNodes } from '../../data/NodesProvider';
 import { localDate } from '../../data/time';
 import { useSettings } from '../../data/SettingsProvider';
@@ -17,7 +17,7 @@ export function useDayPlan(date) {
 
   return useMemo(() => {
     const { workStartMin, workEndMin } = settings;
-    const fixed = settings.fixedBlocks.map((b) => ({
+    const fixed = blocksForDate(settings.fixedBlocks, date).map((b) => ({
       id: b.id,
       kind: b.kind,
       label: b.label || t(`calendar.${b.kind}`),

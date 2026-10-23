@@ -12,6 +12,7 @@
  * @property {string} [label] custom name; when empty the UI shows the default for `kind`
  * @property {number} startMin minutes from 00:00
  * @property {number} endMin
+ * @property {number[]} [days] ISO weekdays the block applies to (1 = Monday ... 7 = Sunday); absent means every day
  */
 
 /** @typedef {'schedule' | 'tasks'} UsageMode timeline with clock times, or plain task lists with no clock */
@@ -70,6 +71,18 @@ function gridInt(v, fallback, min, max) {
 }
 
 /**
+ * Keep only real weekdays (1..7), sorted and unique. Returns undefined for "every day": no list,
+ * an empty list, or all seven days.
+ * @param {unknown} raw
+ * @returns {number[] | undefined}
+ */
+function cleanDays(raw) {
+  if (!Array.isArray(raw)) return undefined;
+  const set = new Set(raw.filter((d) => Number.isInteger(d) && d >= 1 && d <= 7));
+  return set.size === 0 || set.size === 7 ? undefined : [...set].sort((a, b) => a - b);
+}
+
+/**
  * @param {unknown} raw
  * @returns {FixedBlockDef[]}
  */
@@ -84,10 +97,12 @@ function cleanBlocks(raw) {
     const endMin = gridInt(b.endMin, -1, 0, DAY);
     if (startMin < 0 || endMin <= startMin) continue;
     const label = typeof b.label === 'string' ? b.label.trim().slice(0, 40) : '';
+    const days = cleanDays(b.days);
     out.push({
       id: b.id,
       kind: b.kind === 'lunch' ? 'lunch' : 'meeting',
       ...(label ? { label } : {}),
+      ...(days ? { days } : {}),
       startMin,
       endMin,
     });
@@ -190,4 +205,37 @@ export function mergeSettings(local, localDirty, remote) {
  */
 export function adoptLocalMode(remote, local) {
   return remote.mode === null && local.mode !== null ? { ...remote, mode: local.mode } : remote;
+}
+
+/**
+ * ISO weekday of a calendar date: 1 = Monday ... 7 = Sunday.
+ * @param {string} date 'YYYY-MM-DD'
+ * @returns {number}
+ */
+export function isoWeekday(date) {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay() || 7;
+}
+
+/**
+ * The recurring blocks that apply on a given date.
+ * @param {FixedBlockDef[]} blocks
+ * @param {string} date 'YYYY-MM-DD'
+ * @returns {FixedBlockDef[]}
+ */
+export function blocksForDate(blocks, date) {
+  const wd = isoWeekday(date);
+  return blocks.filter((b) => !b.days || b.days.includes(wd));
+}
+
+/**
+ * Plain description of a block's days so the UI can name them in any language.
+ * @param {number[] | undefined} days
+ * @returns {{ kind: 'all' } | { kind: 'workdays' } | { kind: 'weekend' } | { kind: 'list', days: number[] }}
+ */
+export function describeDays(days) {
+  if (!days) return { kind: 'all' };
+  if (days.length === 5 && days.every((d, i) => d === i + 1)) return { kind: 'workdays' };
+  if (days.length === 2 && days[0] === 6 && days[1] === 7) return { kind: 'weekend' };
+  return { kind: 'list', days };
 }
