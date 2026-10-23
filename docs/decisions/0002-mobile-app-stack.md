@@ -11,6 +11,7 @@ Trạng thái: đã chấp nhận (2026-10-22)
 - Biểu tượng: `lucide-react-native`, nhập từng biểu tượng qua `src/ui/icons.js` (nhập từ gói gốc sẽ kéo cả ~1900 biểu tượng vào bản dev). Phông chữ: Bricolage Grotesque (tiêu đề), Be Vietnam Pro (nội dung).
 - Dữ liệu cục bộ: `expo-sqlite`. Cử chỉ: `react-native-gesture-handler`.
 - pnpm dùng `node-linker=hoisted` (`.npmrc`) vì Metro không xử lý ổn định cấu trúc liên kết tượng trưng của pnpm.
+- Kiểm thử giao diện: Jest + `jest-expo` + React Native Testing Library 14 (hàm `render` và `fireEvent` bất đồng bộ). Lớp SQLite được thay bằng bộ nhớ trong ở từng test; biểu tượng Lucide được thay bằng một thành phần giả (`src/test/iconStub.js`) vì chúng là mô-đun ES. Giao diện trong test là tiếng Việt. Các test nằm cạnh mã (`*.test.js` trong `apps/mobile/src`).
 - Kiểm tra giai đoạn đầu chạy trên web (`pnpm --filter mobile web`).
 
 ## Giới hạn hiện tại

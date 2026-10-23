@@ -37,7 +37,7 @@ Trạng thái: **đề xuất khởi đầu**. Xác nhận với chủ dự án 
 |---|---|---|
 | App | React Native + Expo (Expo Router), JavaScript (ESM) + JSDoc, typecheck bằng `tsc --checkJs` | Một codebase cho iOS, Android, web. |
 | Lõi nghiệp vụ | `packages/core`, JavaScript thuần (JSDoc), không phụ thuộc React hay Expo | Dễ kiểm thử, dùng lại ở web và Edge Functions. |
-| Kiểm thử | Vitest (core), React Native Testing Library, Maestro hoặc Detox (E2E sau) | |
+| Kiểm thử | Vitest (core), Jest + jest-expo + React Native Testing Library (giao diện, dữ liệu cục bộ, thiết lập), Maestro hoặc Detox (E2E sau) | Test giao diện đặt trong `apps/mobile/src` (không đặt trong `app/` vì Expo Router coi tệp ở đó là màn hình). |
 | Dữ liệu cục bộ | SQLite (`expo-sqlite`) | Offline-first. |
 | Backend | Supabase: Postgres, Auth, RLS, Edge Functions | Nhanh dựng, có RLS cho bảo mật theo người dùng. |
 | Đồng bộ | Đồng bộ tự viết dựa trên `updated_at` và xóa mềm (MVP). Đánh giá PowerSync hoặc tương đương nếu phức tạp. | Ghi vào `docs/decisions/`. |
@@ -56,6 +56,8 @@ pnpm lint                              # ESLint
 pnpm typecheck                         # tsc --checkJs trên JSDoc
 pnpm format:check                      # Prettier (tệp .md không bị format)
 pnpm --filter @slotwise/core test      # Vitest + coverage, ngưỡng 100% cho schedule và parseNotes
+pnpm test                              # toàn bộ test: lõi (Vitest) và giao diện (Jest + Testing Library)
+pnpm --filter mobile test              # chỉ test giao diện (apps/mobile/src/**/*.test.js)
 pnpm --filter mobile web                  # chạy app trên trình duyệt (cũng có start, android, ios)
 cd apps/mobile && npx eas-cli login                         # một lần, cần tài khoản Expo
 cd apps/mobile && npx eas-cli build -p android --profile development   # development build (APK) trên đám mây

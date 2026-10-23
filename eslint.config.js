@@ -35,4 +35,8 @@ export default [
       'jsdoc/require-returns-type': 'error',
     },
   },
+  {
+    files: ['apps/mobile/**/*.test.js', 'apps/mobile/src/test/**', 'apps/mobile/jest.config.js'],
+    languageOptions: { globals: { ...globals.jest, ...globals.node } },
+  },
 ];
