@@ -28,7 +28,7 @@ npx supabase functions deploy delete-account
 
 Kiểm thử hàm gộp trên máy chủ (chạy trong giao dịch luôn hoàn tác, không để lại dữ liệu): `npx supabase db query --linked -f supabase/tests/push_tree_nodes.sql`. Kết quả đạt là thông báo `TEST_OK`.
 
-Có thêm workflow `.github/workflows/supabase-deploy.yml` tự chạy `db push` khi có commit đổi `supabase/migrations/**` trên nhánh `main`. Workflow cần 3 secret trong GitHub (Settings > Secrets and variables > Actions): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`.
+Có thêm workflow `.github/workflows/supabase-deploy.yml` tự chạy `db push` khi có commit đổi `supabase/migrations/**` trên nhánh `main`. Workflow cần 1 secret trong GitHub (Settings > Secrets and variables > Actions): `SUPABASE_DB_URL`, là chuỗi kết nối Postgres của dự án (Project Settings > Database > Connection string, loại Session pooler, đã điền mật khẩu). Cũng bấm tay được ở tab Actions.
 
 ## 3. Đăng nhập bằng email
 

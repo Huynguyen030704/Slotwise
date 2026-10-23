@@ -10,7 +10,7 @@ Mục tiêu giai đoạn này: chạy thử bản web trên GitHub khi đã có 
 2. **Chế độ riêng tư của kho mã.** GitHub Pages chỉ dùng được với kho **công khai** nếu tài khoản miễn phí (kho riêng tư cần gói trả phí). README ghi giấy phép là "chưa chọn, bảo lưu mọi quyền", nên công khai kho đồng nghĩa mọi người đọc được mã. Hãy quyết định: công khai kho, hay nâng gói, hay dùng nơi lưu trữ khác (xem mục C).
 3. **Bật Pages:** Settings > Pages > Source chọn **GitHub Actions**.
 4. **Biến cho bản build** (Settings > Secrets and variables > Actions > tab Variables): `EXPO_PUBLIC_SUPABASE_URL` và `EXPO_PUBLIC_SUPABASE_ANON_KEY`. Khóa publishable vốn công khai nên để ở dạng Variable là được.
-5. **Secret cho workflow Supabase** nếu muốn migration tự áp: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF` (xem `docs/supabase-setup.md`).
+5. **Secret cho workflow Supabase** nếu muốn migration tự áp: `SUPABASE_DB_URL` (xem `docs/supabase-setup.md`).
 
 ### B. Phía Supabase (bạn làm)
 
