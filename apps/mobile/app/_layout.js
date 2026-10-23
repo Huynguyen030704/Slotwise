@@ -1,0 +1,75 @@
+import { ActivityIndicator, View } from 'react-native';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
+import { BricolageGrotesque_700Bold } from '@expo-google-fonts/bricolage-grotesque';
+import {
+  BeVietnamPro_400Regular,
+  BeVietnamPro_500Medium,
+  BeVietnamPro_600SemiBold,
+} from '@expo-google-fonts/be-vietnam-pro';
+import '../src/i18n';
+import { ThemeProvider, useTheme } from '../src/theme/ThemeProvider';
+import { NodesProvider } from '../src/data/NodesProvider';
+import { SettingsProvider } from '../src/data/SettingsProvider';
+import { AuthProvider } from '../src/data/AuthProvider';
+import { SyncProvider } from '../src/data/SyncProvider';
+
+function Shell() {
+  const { colors, scheme } = useTheme();
+  return (
+    <>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bg },
+        }}
+      >
+        <Stack.Screen name="welcome" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="import" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="focus" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="summary" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="account" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+      </Stack>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  const [loaded] = useFonts({
+    BricolageGrotesque_700Bold,
+    BeVietnamPro_400Regular,
+    BeVietnamPro_500Medium,
+    BeVietnamPro_600SemiBold,
+  });
+
+  if (!loaded) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <SettingsProvider>
+            <AuthProvider>
+              <NodesProvider>
+                <SyncProvider>
+                  <Shell />
+                </SyncProvider>
+              </NodesProvider>
+            </AuthProvider>
+          </SettingsProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}

@@ -20,7 +20,7 @@ Thị trường đã có các công cụ tự xếp lịch (ví dụ Motion, Rec
 
 ## 2. Quy ước làm việc
 
-- **Ngôn ngữ:** trao đổi với chủ dự án bằng **tiếng Việt**. Mã nguồn, tên biến, commit message, tên nhánh, tài liệu kỹ thuật bằng **tiếng Anh**. Chuỗi hiển thị cho người dùng nằm trong tệp i18n, không viết cứng trong component.
+- **Ngôn ngữ:** trao đổi với chủ dự án bằng **tiếng Việt**. Mã nguồn, tên biến và tên nhánh bằng **tiếng Anh**. **Tài liệu** (README, ADR trong `docs/decisions/`, hướng dẫn trong `docs/`) viết bằng **tiếng Việt**. Commit message dùng Conventional Commits với phần mô tả **tiếng Việt** (xem ADR 0001). Chuỗi hiển thị cho người dùng nằm trong tệp i18n, không viết cứng trong component.
 - **Lập kế hoạch trước:** với việc lớn hơn một sửa nhỏ, nêu kế hoạch ngắn và chờ chủ dự án đồng ý trước khi sửa nhiều tệp.
 - **Thay đổi nhỏ, rõ ràng:** mỗi commit một ý, mỗi PR một chủ đề. Dùng Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`).
 - **Kiểm thử trước với lõi nghiệp vụ:** mọi thay đổi trong `packages/core` phải có kiểm thử đơn vị. Không merge khi test đỏ.
@@ -35,9 +35,9 @@ Trạng thái: **đề xuất khởi đầu**. Xác nhận với chủ dự án 
 
 | Lớp | Lựa chọn | Lý do |
 |---|---|---|
-| App | React Native + Expo (Expo Router), JavaScript strict | Một codebase cho iOS, Android, web. |
-| Lõi nghiệp vụ | `packages/core`, JavaScript thuần, không phụ thuộc React hay Expo | Dễ kiểm thử, dùng lại ở web và Edge Functions. |
-| Kiểm thử | Vitest (core), React Native Testing Library, Maestro hoặc Detox (E2E sau) | |
+| App | React Native + Expo (Expo Router), JavaScript (ESM) + JSDoc, typecheck bằng `tsc --checkJs` | Một codebase cho iOS, Android, web. |
+| Lõi nghiệp vụ | `packages/core`, JavaScript thuần (JSDoc), không phụ thuộc React hay Expo | Dễ kiểm thử, dùng lại ở web và Edge Functions. |
+| Kiểm thử | Vitest (core), Jest + jest-expo + React Native Testing Library (giao diện, dữ liệu cục bộ, thiết lập), Maestro hoặc Detox (E2E sau) | Test giao diện đặt trong `apps/mobile/src` (không đặt trong `app/` vì Expo Router coi tệp ở đó là màn hình). |
 | Dữ liệu cục bộ | SQLite (`expo-sqlite`) | Offline-first. |
 | Backend | Supabase: Postgres, Auth, RLS, Edge Functions | Nhanh dựng, có RLS cho bảo mật theo người dùng. |
 | Đồng bộ | Đồng bộ tự viết dựa trên `updated_at` và xóa mềm (MVP). Đánh giá PowerSync hoặc tương đương nếu phức tạp. | Ghi vào `docs/decisions/`. |
@@ -48,31 +48,41 @@ Trạng thái: **đề xuất khởi đầu**. Xác nhận với chủ dự án 
 
 ## 4. Lệnh thường dùng
 
-Điền vào sau khi khởi tạo xong Milestone 0. Giữ mục này luôn đúng.
+Giữ mục này luôn đúng. Cần Node >= 22 (xem `.nvmrc`) và pnpm.
 
 ```bash
-# TODO sau Milestone 0
 pnpm install
-pnpm -w lint
-pnpm -w typecheck
-pnpm --filter @slotwise/core test
-pnpm --filter mobile start
+pnpm lint                              # ESLint
+pnpm typecheck                         # tsc --checkJs trên JSDoc
+pnpm format:check                      # Prettier (tệp .md không bị format)
+pnpm --filter @slotwise/core test      # Vitest + coverage, ngưỡng 100% cho schedule và parseNotes
+pnpm test                              # toàn bộ test: lõi (Vitest) và giao diện (Jest + Testing Library)
+pnpm --filter mobile test              # chỉ test giao diện (apps/mobile/src/**/*.test.js)
+pnpm --filter mobile web                  # chạy app trên trình duyệt (cũng có start, android, ios)
+EXPO_BASE_URL=/Slotwise pnpm --filter mobile export:web   # build web tĩnh cho GitHub Pages (apps/mobile/dist)
+cd apps/mobile && npx eas-cli login                         # một lần, cần tài khoản Expo
+cd apps/mobile && npx eas-cli build -p android --profile development   # development build (APK) trên đám mây
+pnpm --filter mobile start --dev-client                      # chạy Metro cho development build
 ```
 
 ## 5. Cấu trúc thư mục
 
 ```
 apps/mobile/          Expo app
-packages/core/        Thuật toán xếp lịch, bộ đọc ghi chú, kiểu dữ liệu (TS thuần)
+packages/core/        Thuật toán xếp lịch, bộ đọc ghi chú, kiểu dữ liệu (JS thuần + JSDoc)
 supabase/migrations/  Schema SQL
 supabase/functions/   Edge Functions (proxy AI, đồng bộ lịch)
 docs/prototype/       Prototype HTML tham chiếu (không sửa, không import)
 docs/decisions/       ADR: một tệp markdown cho mỗi quyết định kỹ thuật
+docs/supabase-setup.md   Thiết lập Supabase (CLI, đăng nhập email)
+docs/trien-khai-web.md    Triển khai bản web lên GitHub Pages, danh sách việc còn thiếu
 ```
 
 ## 6. Mô hình dữ liệu
 
 Cây công việc lưu **phẳng**, mỗi nút trỏ tới nút cha. Thứ tự anh em là thứ tự trong cây và **cũng là thứ tự ưu tiên khi xếp lịch**.
+
+Kiểu dưới đây viết bằng cú pháp TypeScript chỉ để mô tả. Mã thật dùng `@typedef` JSDoc trong `packages/core/src/types.js`.
 
 ```ts
 type NodeKind = 'group' | 'task' | 'note';
@@ -114,14 +124,15 @@ Quy tắc nghiệp vụ trên cây:
 Các bảng Supabase (phác thảo, mọi bảng có RLS `user_id = auth.uid()`):
 
 - `profiles(user_id, display_name, locale, timezone)`
-- `user_settings(user_id, work_start_min, work_end_min, peak ('morning'|'afternoon'), buffer_min, grid_min)`
-- `tree_nodes(...)` như kiểu `TreeNode` ở trên.
+- `user_settings(user_id, work_start_min, work_end_min, peak ('morning'|'afternoon'), buffer_min, grid_min, fixed_blocks jsonb, mode ('schedule'|'tasks'|null))`: `fixed_blocks` là danh sách khung giờ cố định mỗi ngày `{id, kind: 'lunch'|'meeting', label?, startMin, endMin, days?}` (`days`: thứ trong tuần 1 = Thứ Hai đến 7 = Chủ nhật, thiếu nghĩa là mọi ngày). Người dùng chỉnh trong màn Thiết lập (giờ làm việc, giờ tỉnh táo, khung giờ cố định), đồng bộ theo tài khoản. `mode` là cách dùng: `schedule` (xếp việc theo giờ, mặc định) hoặc `tasks` (chỉ quản lý việc: danh sách + màn Hôm nay/Ngày mai/Sau này, không giờ giấc), xem ADR 0004.
+- `tree_nodes(...)` như kiểu `TreeNode` ở trên, thêm `field_times jsonb` (giờ sửa gần nhất của từng nhóm trường, xem ADR 0005).
+- `node_history(user_id, node_id, group_name, old_values jsonb, changed_at)`: nhật ký giá trị cũ khi một nhóm trường bị ghi đè, giữ 30 ngày.
 - `calendar_accounts(id, user_id, provider, encrypted_refresh_token, ...)`: token mã hóa, chỉ Edge Function đọc được.
 - `calendar_events(id, user_id, account_id, external_id, start_utc, end_utc, title_hash_or_title, is_busy, updated_at)`: cache sự kiện.
 
 ## 7. Thuật toán xếp lịch
 
-Viết thành **hàm thuần, xác định** trong `packages/core/src/schedule.ts`. Cùng đầu vào luôn cho cùng kết quả. Không đọc giờ hệ thống bên trong hàm.
+Viết thành **hàm thuần, xác định** trong `packages/core/src/schedule.js`. Cùng đầu vào luôn cho cùng kết quả. Không đọc giờ hệ thống bên trong hàm.
 
 ```ts
 interface Block { startMin: number; endMin: number }         // họp, nghỉ trưa, việc đã xong có giữ chỗ
@@ -169,7 +180,7 @@ Bộ kiểm thử tối thiểu cho `schedule`:
 
 ## 8. Bộ đọc ghi chú (Notes import)
 
-`packages/core/src/parseNotes.ts`. Chuyển văn bản Notepad hoặc Markdown thành danh sách `TreeNode` (chưa có `userId`, `position`). Tham chiếu: `docs/prototype/notes-parser.js`. Quy tắc:
+`packages/core/src/parseNotes.js`. Chuyển văn bản Notepad hoặc Markdown thành danh sách `TreeNode` (chưa có `userId`, `position`). Tham chiếu: `docs/prototype/notes-parser.js`. Quy tắc:
 
 | Cú pháp | Ý nghĩa |
 |---|---|
@@ -252,26 +263,30 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 ## 13. Lộ trình và định nghĩa hoàn thành
 
 ### Milestone 0: Nền móng
-- [ ] Xác nhận công nghệ với chủ dự án, ghi ADR đầu tiên.
-- [ ] Khởi tạo monorepo (pnpm workspaces), JavaScript strict, ESLint, Prettier.
-- [ ] CI GitHub Actions: lint, typecheck, test.
-- [ ] `packages/core`: kiểu dữ liệu, `schedule`, `parseNotes`, kiểm thử theo mục 7 và 8. Độ phủ của hai hàm này gần 100%.
-- [ ] Điền mục 4 (lệnh thường dùng) trong tệp này.
+- [x] Xác nhận công nghệ với chủ dự án, ghi ADR đầu tiên.
+- [x] Khởi tạo monorepo (pnpm workspaces), JavaScript (ESM) + JSDoc, typecheck bằng `tsc --checkJs`, ESLint, Prettier.
+- [x] CI GitHub Actions: lint, typecheck, test.
+- [x] `packages/core`: kiểu dữ liệu, `schedule`, `parseNotes`, kiểm thử theo mục 7 và 8. Độ phủ của hai hàm này gần 100%.
+- [x] Điền mục 4 (lệnh thường dùng) trong tệp này.
 
 **Hoàn thành khi:** CI xanh, `pnpm --filter @slotwise/core test` chạy qua mọi trường hợp ở mục 7 và 8.
 
 ### Milestone 1: Lõi cục bộ
-- [ ] Khung app Expo, điều hướng, token thiết kế, chế độ sáng tối, i18n.
-- [ ] SQLite và lớp truy cập dữ liệu, lưu cây việc.
-- [ ] Màn hình danh sách (cây nhóm, việc, việc con, tiến độ, thu gọn, sửa tên, xóa có hoàn tác).
-- [ ] Màn hình lịch ngày với dữ liệu họp mẫu, kéo thả theo mục 9.
-- [ ] Nhập ghi chú, chế độ tập trung, tổng kết ngày và sao chép báo cáo.
+- [x] Khung app Expo, điều hướng, token thiết kế, chế độ sáng tối, i18n.
+- [x] SQLite và lớp truy cập dữ liệu, lưu cây việc.
+- [x] Màn hình danh sách (cây nhóm, việc, việc con, tiến độ, thu gọn, sửa tên, xóa có hoàn tác).
+- [x] Màn hình lịch ngày. Họp mẫu đã bỏ: giờ làm việc, giờ tỉnh táo và khung giờ cố định do người dùng cấu hình trong Thiết lập (lịch ngoài thật ở Milestone 3).
+- [x] Kéo thả theo mục 9: kéo khối trong lịch để ghim, kéo ra khỏi lịch để bỏ ghim, kéo trong danh sách (trước/sau dòng, vào nhóm), kéo việc từ danh sách vào lịch (màn hình rộng từ 900dp, danh sách và lịch cạnh nhau). Điện thoại hẹp dùng menu "Ghim vào giờ…" và "Đưa lên/xuống". Chưa thử trên thiết bị thật.
+- [x] Nhập ghi chú, chế độ tập trung, tổng kết ngày và sao chép báo cáo.
 
 **Hoàn thành khi:** dùng trọn một ngày làm việc được hoàn toàn offline, không mất dữ liệu khi tắt mở app.
 
 ### Milestone 2: Tài khoản và đồng bộ
-- [ ] Supabase Auth (email, Google, Apple), RLS, migrations.
-- [ ] Đồng bộ đa thiết bị, xử lý xung đột, xuất dữ liệu, xóa tài khoản.
+- [x] Migration `supabase/migrations/` (profiles, user_settings, tree_nodes, RLS, `push_tree_nodes`). Đã link và `db push` lên dự án Slotwise (migration `20261022010000_sync.sql`).
+- [x] Đăng nhập bằng email trong app, bắt buộc xác nhận email (mã đã viết, **chưa thử với Supabase thật**). Đã gỡ Google; Apple để sau.
+- [x] Đồng bộ đa thiết bị: kéo/đẩy theo `updated_at`, xóa mềm, gộp dữ liệu cục bộ lần đầu (logic gộp có test trong core). Ghi sau cùng thắng **theo từng trường** (nhóm trường, `field_times`), kèm nhật ký `node_history` giữ 30 ngày (xem ADR 0005).
+- [x] Xuất dữ liệu JSON, xóa tài khoản (Edge Function `delete-account`, đã deploy).
+- [ ] Bật Confirm email trong Supabase (`docs/supabase-setup.md` mục 3), thử đồng bộ thật trên hai thiết bị.
 
 ### Milestone 3: Lịch ngoài
 - [ ] Google Calendar, Microsoft Outlook: lấy sự kiện làm khối bận, làm mới định kỳ.
