@@ -15,6 +15,7 @@ export function TopBar({ title, extra }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
+        zIndex: 10, // keeps button tooltips above the content below
         gap: spacing.sm,
       }}
     >

@@ -24,7 +24,7 @@ export default {
     addGroupPlaceholder: 'Tên nhóm mới',
     addTask: 'Thêm việc',
     addGroup: 'Thêm nhóm',
-    importNotes: 'Nhập ghi chú',
+    importNotes: 'Nhập việc từ ghi chú',
     progress: '{{done}}/{{total}} việc',
     noGroup: 'Chưa thuộc nhóm nào',
     deleted: 'Đã xóa “{{title}}”',
@@ -122,7 +122,7 @@ export default {
   },
   account: {
     title: 'Tài khoản',
-    openLabel: 'Mở tài khoản và đồng bộ',
+    openLabel: 'Tài khoản và đồng bộ',
     notConfigured: 'Chưa cấu hình Supabase. Ứng dụng vẫn dùng được hoàn toàn offline trên máy này.',
     introTitle: 'Đồng bộ việc giữa các thiết bị',
     benefits: {
@@ -240,11 +240,11 @@ export default {
     planned: 'Dự kiến {{time}}',
     timerDone: 'Đã hết 25 phút. Nghỉ một chút hoặc tiếp tục.',
     timerLabel: 'Đồng hồ còn {{time}}',
-    openLabel: 'Mở chế độ tập trung',
+    openLabel: 'Chế độ tập trung: làm từng việc một',
   },
   summary: {
     title: 'Tổng kết ngày',
-    openLabel: 'Mở tổng kết ngày',
+    openLabel: 'Tổng kết ngày và báo cáo gửi sếp',
     progress: 'Đã xong {{done}}/{{total}} việc hôm nay',
     allDone: 'Bạn đã làm xong mọi việc hôm nay.',
     noTasks: 'Hôm nay chưa có việc nào trong lịch.',

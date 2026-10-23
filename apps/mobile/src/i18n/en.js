@@ -24,7 +24,7 @@ export default {
     addGroupPlaceholder: 'New group name',
     addTask: 'Add task',
     addGroup: 'Add group',
-    importNotes: 'Import notes',
+    importNotes: 'Import tasks from notes',
     progress: '{{done}}/{{total}} tasks',
     noGroup: 'No group',
     deleted: 'Deleted “{{title}}”',
@@ -123,7 +123,7 @@ export default {
   },
   account: {
     title: 'Account',
-    openLabel: 'Open account and sync',
+    openLabel: 'Account and sync',
     notConfigured: 'Supabase is not configured. The app still works fully offline on this device.',
     introTitle: 'Sync your tasks across devices',
     benefits: {
@@ -240,11 +240,11 @@ export default {
     planned: 'Planned {{time}}',
     timerDone: '25 minutes are up. Take a break or keep going.',
     timerLabel: 'Timer: {{time}} left',
-    openLabel: 'Open focus mode',
+    openLabel: 'Focus mode: one task at a time',
   },
   summary: {
     title: 'Day summary',
-    openLabel: 'Open day summary',
+    openLabel: 'Day summary and report',
     progress: '{{done}}/{{total}} tasks done today',
     allDone: 'You finished everything planned for today.',
     noTasks: 'Nothing scheduled today.',
