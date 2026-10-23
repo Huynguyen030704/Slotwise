@@ -28,6 +28,17 @@ Mục tiêu giai đoạn này: chạy thử bản web trên GitHub khi đã có 
 
 Chạy thử bản build ở máy: `EXPO_BASE_URL=/Slotwise pnpm --filter mobile export:web`, kết quả nằm ở `apps/mobile/dist`.
 
+### C2. Cài về máy như một ứng dụng (PWA)
+
+Người dùng cài trực tiếp từ trang web, không cần cửa hàng ứng dụng hay build app. `scripts/export-web.mjs` tạo `manifest.webmanifest` (tên, màu, biểu tượng, `start_url` và `scope` theo đường dẫn con `/Slotwise/`) và gắn vào `index.html`. Biểu tượng nằm ở `apps/mobile/public/icons/`, do `scripts/make-icons.mjs` vẽ (lịch có dấu tích, trắng trên nền chàm; chạy lại `node scripts/make-icons.mjs` khi đổi thiết kế).
+
+Cách cài:
+- **Android (Chrome):** mở trang, menu ⋮ > **Cài đặt ứng dụng** (hoặc **Thêm vào màn hình chính**).
+- **iPhone (Safari):** nút chia sẻ > **Thêm vào Màn hình chính**. iOS chỉ cài được từ Safari.
+- **Máy tính (Chrome, Edge):** biểu tượng cài đặt ở cuối thanh địa chỉ.
+
+Mở từ biểu tượng thì app chạy toàn màn hình, không có thanh địa chỉ. Dữ liệu vẫn lưu trên trình duyệt của máy đó và đồng bộ qua tài khoản. Chưa có chế độ mở khi mất mạng hẳn (chưa lưu sẵn tệp của app); cần thêm nếu muốn.
+
 ### D. Việc còn thiếu trước khi mở cho người khác dùng
 
 | Việc | Ghi chú |
