@@ -16,6 +16,7 @@ import { useSettings } from '../src/data/SettingsProvider';
 import { AuthForm } from '../src/features/auth/AuthForm';
 import { ModeCards } from '../src/features/mode/ModeCards';
 import { AppText } from '../src/ui/AppText';
+import { KeyboardSpacer } from '../src/ui/KeyboardSpacer';
 import { PrefButtons } from '../src/ui/PrefButtons';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { WIDE_BREAKPOINT } from '../src/lib/layout';
@@ -229,6 +230,7 @@ export default function WelcomeScreen() {
             {form}
             <ValueProps />
           </View>
+          {Platform.OS === 'web' ? <KeyboardSpacer /> : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

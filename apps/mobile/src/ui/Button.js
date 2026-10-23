@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable } from 'react-native';
 import { AppText } from './AppText';
+import { tappable } from '../lib/touch';
 import { useTheme } from '../theme/ThemeProvider';
 import { MIN_TOUCH, radius, spacing } from '../theme/tokens';
 
@@ -37,6 +38,7 @@ export function Button({ title, onPress, variant = 'primary', disabled, loading,
         borderColor: colors.line,
         backgroundColor: bg,
         opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
+        ...tappable,
       })}
     >
       {loading ? <ActivityIndicator size="small" color={colors[fg]} /> : icon}

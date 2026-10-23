@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { AppText } from '../../ui/AppText';
 import { IconButton } from '../../ui/IconButton';
 import { Input } from '../../ui/Input';
+import { tappable } from '../../lib/touch';
 import { useTheme } from '../../theme/ThemeProvider';
 import { spacing } from '../../theme/tokens';
 
@@ -51,6 +52,7 @@ export function QuickAdd({ groups, target, onTargetChange, onAddTask, onAddGroup
           borderWidth: 1,
           borderColor: active ? colors.accent : colors.line,
           backgroundColor: active ? colors.accent : colors.surface,
+          ...tappable,
         }}
       >
         <AppText size={13} tone={active ? 'accentInk' : 'ink'} weight="bodyMedium">
@@ -68,6 +70,9 @@ export function QuickAdd({ groups, target, onTargetChange, onAddTask, onAddGroup
           onChangeText={setText}
           onSubmitEditing={addTask}
           returnKeyType="done"
+          enterKeyHint="done"
+          autoCapitalize="sentences"
+          autoCorrect
           blurOnSubmit={false}
           placeholder={t('list.addTaskPlaceholder')}
           accessibilityLabel={t('list.addTaskPlaceholder')}
