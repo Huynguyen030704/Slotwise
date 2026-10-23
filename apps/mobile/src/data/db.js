@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import { nodeToRow, rowToNode } from '@slotwise/core';
 import { MIGRATIONS } from './schema';
+import { createQueue } from '../lib/serial';
 
 /** @typedef {import('@slotwise/core/types.js').TreeNode} TreeNode */
 
@@ -13,6 +14,9 @@ const g = /** @type {Record<string, any>} */ (globalThis);
 export function isLockedError(e) {
   return /Access Handle|createSyncAccessHandle/i.test(String(/** @type {any} */ (e)?.message ?? e));
 }
+
+// Every query goes through this queue: see lib/serial.js.
+const serial = createQueue();
 
 /** @param {number} ms */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -81,10 +85,12 @@ const COLS = [
 ];
 
 /** All nodes, including soft-deleted ones (so undo and future sync keep working). */
-export async function loadNodes() {
-  const db = await getDb();
-  const rows = await db.getAllAsync('SELECT * FROM tree_nodes');
-  return /** @type {import('@slotwise/core/nodeRows.js').NodeRow[]} */ (rows).map(rowToNode);
+export function loadNodes() {
+  return serial(async () => {
+    const db = await getDb();
+    const rows = await db.getAllAsync('SELECT * FROM tree_nodes');
+    return /** @type {import('@slotwise/core/nodeRows.js').NodeRow[]} */ (rows).map(rowToNode);
+  });
 }
 
 /**
@@ -93,69 +99,81 @@ export async function loadNodes() {
  * @param {TreeNode[]} nodes
  * @param {{ dirty?: boolean }} [opts]
  */
-export async function saveNodes(nodes, { dirty = true } = {}) {
-  if (!nodes.length) return;
-  const db = await getDb();
-  const cols = [...COLS, 'dirty'];
-  const sql = `INSERT OR REPLACE INTO tree_nodes (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`;
-  await db.withTransactionAsync(async () => {
-    for (const n of nodes) {
-      const row = /** @type {Record<string, any>} */ ({ ...nodeToRow(n), dirty: dirty ? 1 : 0 });
-      await db.runAsync(
-        sql,
-        cols.map((c) => row[c]),
-      );
-    }
+export function saveNodes(nodes, { dirty = true } = {}) {
+  return serial(async () => {
+    if (!nodes.length) return;
+    const db = await getDb();
+    const cols = [...COLS, 'dirty'];
+    const sql = `INSERT OR REPLACE INTO tree_nodes (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`;
+    await db.withTransactionAsync(async () => {
+      for (const n of nodes) {
+        const row = /** @type {Record<string, any>} */ ({ ...nodeToRow(n), dirty: dirty ? 1 : 0 });
+        await db.runAsync(
+          sql,
+          cols.map((c) => row[c]),
+        );
+      }
+    });
   });
 }
 
 /** Rows changed on this device and not yet pushed. */
-export async function loadDirtyNodes() {
-  const db = await getDb();
-  const rows = await db.getAllAsync('SELECT * FROM tree_nodes WHERE dirty = 1');
-  return /** @type {import('@slotwise/core/nodeRows.js').NodeRow[]} */ (rows).map(rowToNode);
+export function loadDirtyNodes() {
+  return serial(async () => {
+    const db = await getDb();
+    const rows = await db.getAllAsync('SELECT * FROM tree_nodes WHERE dirty = 1');
+    return /** @type {import('@slotwise/core/nodeRows.js').NodeRow[]} */ (rows).map(rowToNode);
+  });
 }
 
 /**
  * After a push: clear the dirty flag, but only for rows that were not edited again meanwhile.
  * @param {TreeNode[]} nodes
  */
-export async function markClean(nodes) {
-  if (!nodes.length) return;
-  const db = await getDb();
-  await db.withTransactionAsync(async () => {
-    for (const n of nodes) {
-      await db.runAsync('UPDATE tree_nodes SET dirty = 0 WHERE id = ? AND updated_at = ?', [
-        n.id,
-        n.updatedAt ?? '',
-      ]);
-    }
+export function markClean(nodes) {
+  return serial(async () => {
+    if (!nodes.length) return;
+    const db = await getDb();
+    await db.withTransactionAsync(async () => {
+      for (const n of nodes) {
+        await db.runAsync('UPDATE tree_nodes SET dirty = 0 WHERE id = ? AND updated_at = ?', [
+          n.id,
+          n.updatedAt ?? '',
+        ]);
+      }
+    });
   });
 }
 
 /** Remove every local node and sync marker (used after the user confirms switching accounts). */
-export async function clearLocalData() {
-  const db = await getDb();
-  await db.withTransactionAsync(async () => {
-    await db.runAsync('DELETE FROM tree_nodes');
-    await db.runAsync("DELETE FROM user_settings WHERE key LIKE 'sync_%'");
+export function clearLocalData() {
+  return serial(async () => {
+    const db = await getDb();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('DELETE FROM tree_nodes');
+      await db.runAsync("DELETE FROM user_settings WHERE key LIKE 'sync_%'");
+    });
   });
 }
 
 /** @param {string} key */
-export async function getSetting(key) {
-  const db = await getDb();
-  const row = /** @type {{ value: string } | null} */ (
-    await db.getFirstAsync('SELECT value FROM user_settings WHERE key = ?', [key])
-  );
-  return row ? row.value : null;
+export function getSetting(key) {
+  return serial(async () => {
+    const db = await getDb();
+    const row = /** @type {{ value: string } | null} */ (
+      await db.getFirstAsync('SELECT value FROM user_settings WHERE key = ?', [key])
+    );
+    return row ? row.value : null;
+  });
 }
 
 /** @param {string} key @param {string} value */
-export async function setSetting(key, value) {
-  const db = await getDb();
-  await db.runAsync('INSERT OR REPLACE INTO user_settings (key, value) VALUES (?, ?)', [
-    key,
-    value,
-  ]);
+export function setSetting(key, value) {
+  return serial(async () => {
+    const db = await getDb();
+    await db.runAsync('INSERT OR REPLACE INTO user_settings (key, value) VALUES (?, ?)', [
+      key,
+      value,
+    ]);
+  });
 }
