@@ -99,8 +99,6 @@ export default {
     },
   },
   auth: {
-    google: 'Tiếp tục với Google',
-    or: 'hoặc dùng email',
     signIn: 'Đăng nhập',
     signUp: 'Tạo tài khoản',
     createAccount: 'Tạo tài khoản',
@@ -119,7 +117,6 @@ export default {
       rateLimited: 'Bạn thử quá nhiều lần. Đợi một lát rồi thử lại.',
       network: 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.',
       weakPassword: 'Mật khẩu quá yếu. Dùng mật khẩu dài hơn.',
-      providerOff: 'Đăng nhập bằng Google chưa được bật. Dùng email hoặc thử lại sau.',
       generic: 'Chưa đăng nhập được. Thử lại sau ít phút.',
     },
   },
@@ -129,8 +126,6 @@ export default {
     notConfigured: 'Chưa cấu hình Supabase. Ứng dụng vẫn dùng được hoàn toàn offline trên máy này.',
     intro:
       'Đăng nhập để đồng bộ việc giữa điện thoại và máy tính. Dữ liệu trên máy này sẽ được gộp vào tài khoản.',
-    google: 'Tiếp tục với Google',
-    or: 'hoặc dùng email',
     email: 'Email',
     password: 'Mật khẩu (ít nhất 6 ký tự)',
     signIn: 'Đăng nhập',

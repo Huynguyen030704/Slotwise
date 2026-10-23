@@ -73,7 +73,7 @@ supabase/migrations/  Schema SQL
 supabase/functions/   Edge Functions (proxy AI, đồng bộ lịch)
 docs/prototype/       Prototype HTML tham chiếu (không sửa, không import)
 docs/decisions/       ADR: một tệp markdown cho mỗi quyết định kỹ thuật
-docs/supabase-setup.md   Thiết lập Supabase (CLI, Google OAuth)
+docs/supabase-setup.md   Thiết lập Supabase (CLI, đăng nhập email)
 docs/trien-khai-web.md    Triển khai bản web lên GitHub Pages, danh sách việc còn thiếu
 ```
 
@@ -282,10 +282,10 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 
 ### Milestone 2: Tài khoản và đồng bộ
 - [x] Migration `supabase/migrations/` (profiles, user_settings, tree_nodes, RLS, `push_tree_nodes`). Đã link và `db push` lên dự án Slotwise (migration `20261022010000_sync.sql`).
-- [x] Đăng nhập Google và email trong app (mã đã viết, **chưa thử với Supabase thật**). Apple để sau.
+- [x] Đăng nhập bằng email trong app, bắt buộc xác nhận email (mã đã viết, **chưa thử với Supabase thật**). Đã gỡ Google; Apple để sau.
 - [x] Đồng bộ đa thiết bị: kéo/đẩy theo `updated_at`, xóa mềm, gộp dữ liệu cục bộ lần đầu (logic gộp có test trong core). Ghi sau cùng thắng **theo từng trường** (nhóm trường, `field_times`), kèm nhật ký `node_history` giữ 30 ngày (xem ADR 0005).
 - [x] Xuất dữ liệu JSON, xóa tài khoản (Edge Function `delete-account`, đã deploy).
-- [ ] Cấu hình Google OAuth (`docs/supabase-setup.md` mục 3), thử đồng bộ thật trên hai thiết bị.
+- [ ] Bật Confirm email trong Supabase (`docs/supabase-setup.md` mục 3), thử đồng bộ thật trên hai thiết bị.
 
 ### Milestone 3: Lịch ngoài
 - [ ] Google Calendar, Microsoft Outlook: lấy sự kiện làm khối bận, làm mới định kỳ.

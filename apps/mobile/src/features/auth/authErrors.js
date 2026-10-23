@@ -14,7 +14,6 @@ export function authErrorKey(message) {
     return 'rateLimited';
   if (/network|fetch|timeout|offline/.test(m)) return 'network';
   if (/weak|at least \d+ characters|password should/.test(m)) return 'weakPassword';
-  if (/provider is not enabled|unsupported provider/.test(m)) return 'providerOff';
   return 'generic';
 }
 

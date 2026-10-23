@@ -12,11 +12,11 @@ Mục tiêu giai đoạn này: chạy thử bản web trên GitHub khi đã có 
 4. **Biến cho bản build** (Settings > Secrets and variables > Actions > tab Variables): `EXPO_PUBLIC_SUPABASE_URL` và `EXPO_PUBLIC_SUPABASE_ANON_KEY`. Khóa publishable vốn công khai nên để ở dạng Variable là được.
 5. **Secret cho workflow Supabase** nếu muốn migration tự áp: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF` (xem `docs/supabase-setup.md`).
 
-### B. Phía Supabase và Google (bạn làm)
+### B. Phía Supabase (bạn làm)
 
-1. Cấu hình Google OAuth theo `docs/supabase-setup.md` mục 3, và thêm **địa chỉ trang Pages** vào URL Configuration: `https://huynguyen030704.github.io/Slotwise/` (và `/**`). Đặt Site URL là địa chỉ này.
-2. Bật **Confirm email**.
-3. Kiểm tra đăng ký bằng email và đăng nhập Google trên bản web đã triển khai.
+1. Thêm **địa chỉ trang Pages** vào URL Configuration: `https://huynguyen030704.github.io/Slotwise/` (và `/**`). Đặt Site URL là địa chỉ này.
+2. Bật **Confirm email** (xem `docs/supabase-setup.md` mục 3).
+3. Kiểm tra đăng ký bằng email (có thư xác nhận) và đăng nhập trên bản web đã triển khai.
 
 ### C. Phía mã nguồn (tôi làm khi bạn đồng ý)
 

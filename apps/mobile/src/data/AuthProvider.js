@@ -1,18 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
-import * as Linking from 'expo-linking';
-import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
-
-// Lets the auth popup close itself when the OAuth redirect lands back in the app (web).
-WebBrowser.maybeCompleteAuthSession();
 
 /**
  * @typedef {object} AuthApi
  * @property {boolean} configured Supabase keys are present
  * @property {boolean} loading the stored session is still being read
  * @property {import('@supabase/supabase-js').Session | null} session
- * @property {() => Promise<string | null>} signInWithGoogle returns an error message, or null
  * @property {(email: string, password: string) => Promise<string | null>} signInWithPassword
  * @property {(email: string, password: string) => Promise<string | null>} signUp
  * @property {() => Promise<void>} signOut
@@ -43,30 +37,6 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
-    if (!supabase) return 'not-configured';
-    if (Platform.OS === 'web') {
-      // Full-page redirect; the session is picked up from the URL when the page loads again.
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin },
-      });
-      return error ? error.message : null;
-    }
-    const redirectTo = Linking.createURL('auth/callback');
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo, skipBrowserRedirect: true },
-    });
-    if (error || !data.url) return error?.message ?? 'no-url';
-    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-    if (result.type !== 'success') return null; // cancelled
-    const code = new URL(result.url).searchParams.get('code');
-    if (!code) return 'no-code';
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-    return exchangeError ? exchangeError.message : null;
-  }, []);
-
   const signInWithPassword = useCallback(
     /** @param {string} email @param {string} password */
     async (email, password) => {
@@ -81,7 +51,10 @@ export function AuthProvider({ children }) {
     /** @param {string} email @param {string} password */
     async (email, password) => {
       if (!supabase) return 'not-configured';
-      const { error } = await supabase.auth.signUp({ email, password });
+      // The confirmation link brings the person back to the web app; on phones it opens the Site URL.
+      const options =
+        Platform.OS === 'web' ? { emailRedirectTo: window.location.origin } : undefined;
+      const { error } = await supabase.auth.signUp({ email, password, options });
       return error ? error.message : null;
     },
     [],
@@ -104,13 +77,12 @@ export function AuthProvider({ children }) {
       configured: !!supabase,
       loading,
       session,
-      signInWithGoogle,
       signInWithPassword,
       signUp,
       signOut,
       deleteAccount,
     }),
-    [loading, session, signInWithGoogle, signInWithPassword, signUp, signOut, deleteAccount],
+    [loading, session, signInWithPassword, signUp, signOut, deleteAccount],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

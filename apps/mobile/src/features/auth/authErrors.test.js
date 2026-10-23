@@ -10,7 +10,6 @@ describe('authErrorKey', () => {
     ['TypeError: Network request failed', 'network'],
     ['Failed to fetch', 'network'],
     ['Password should be at least 6 characters', 'weakPassword'],
-    ['Unsupported provider: provider is not enabled', 'providerOff'],
     ['something unexpected', 'generic'],
   ])('maps "%s" to %s', (message, key) => {
     expect(authErrorKey(message)).toBe(key);

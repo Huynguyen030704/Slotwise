@@ -104,7 +104,7 @@ export default function WelcomeScreen() {
     router.replace('/');
   };
 
-  // Signed in (email, or back from the Google redirect): remember it and go to the app.
+  // Signed in: remember it and go to the app.
   useEffect(() => {
     if (auth.session) enter();
   }, [auth.session]);

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { AppText } from '../../ui/AppText';
 import { Button } from '../../ui/Button';
@@ -7,14 +7,12 @@ import { FormField } from '../../ui/FormField';
 import { useAuth } from '../../data/AuthProvider';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing } from '../../theme/tokens';
-import { GoogleLogo } from './GoogleLogo';
 import { MIN_PASSWORD, authErrorKey, isValidEmail } from './authErrors';
 
 /**
- * Sign-in options: Google first, then email and password (sign in or create account).
- * @param {{ onGoogleStart?: () => void }} props
+ * Sign in or create an account with email and password. New accounts must confirm their email.
  */
-export function AuthForm({ onGoogleStart }) {
+export function AuthForm() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const auth = useAuth();
@@ -23,7 +21,7 @@ export function AuthForm({ onGoogleStart }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tried, setTried] = useState(false);
-  const [busy, setBusy] = useState(/** @type {null | 'google' | 'email'} */ (null));
+  const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState(/** @type {string | null} */ (null));
   const [notice, setNotice] = useState(/** @type {string | null} */ (null));
   const passwordRef = useRef(/** @type {any} */ (null));
@@ -37,68 +35,23 @@ export function AuthForm({ onGoogleStart }) {
   /** @param {string} raw */
   const explain = (raw) => t(`auth.errors.${authErrorKey(raw)}`);
 
-  const google = async () => {
-    setBusy('google');
-    setFormError(null);
-    setNotice(null);
-    onGoogleStart?.();
-    const err = await auth.signInWithGoogle();
-    setBusy(null);
-    if (err) setFormError(explain(err));
-  };
-
   const submit = async () => {
     setTried(true);
     setFormError(null);
     setNotice(null);
     if (!isValidEmail(email) || password.length < MIN_PASSWORD) return;
-    setBusy('email');
+    setBusy(true);
     const err =
       mode === 'in'
         ? await auth.signInWithPassword(email.trim(), password)
         : await auth.signUp(email.trim(), password);
-    setBusy(null);
+    setBusy(false);
     if (err) setFormError(explain(err));
     else if (mode === 'up') setNotice(t('auth.checkEmail'));
   };
 
-  const working = busy !== null;
-
   return (
     <View style={{ gap: spacing.lg }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('auth.google')}
-        accessibilityState={{ disabled: working, busy: busy === 'google' }}
-        disabled={working}
-        onPress={google}
-        style={({ pressed }) => ({
-          minHeight: 52,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.md,
-          borderRadius: radius.md,
-          borderWidth: 1,
-          borderColor: colors.line,
-          backgroundColor: colors.surface,
-          opacity: working && busy !== 'google' ? 0.5 : pressed ? 0.8 : 1,
-        })}
-      >
-        {busy === 'google' ? <ActivityIndicator color={colors.accent} /> : <GoogleLogo />}
-        <AppText weight="bodyBold" size={16}>
-          {t('auth.google')}
-        </AppText>
-      </Pressable>
-
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-        <View style={{ flex: 1, height: 1, backgroundColor: colors.line }} />
-        <AppText size={13} tone="muted">
-          {t('auth.or')}
-        </AppText>
-        <View style={{ flex: 1, height: 1, backgroundColor: colors.line }} />
-      </View>
-
       <View
         accessibilityRole="tablist"
         style={{
@@ -148,7 +101,7 @@ export function AuthForm({ onGoogleStart }) {
         autoComplete="email"
         returnKeyType="next"
         onSubmit={() => passwordRef.current?.focus()}
-        editable={!working}
+        editable={!busy}
       />
       <FormField
         ref={passwordRef}
@@ -163,7 +116,7 @@ export function AuthForm({ onGoogleStart }) {
         autoComplete={mode === 'in' ? 'current-password' : 'new-password'}
         returnKeyType="done"
         onSubmit={submit}
-        editable={!working}
+        editable={!busy}
       />
 
       {formError ? (
@@ -180,8 +133,7 @@ export function AuthForm({ onGoogleStart }) {
       <Button
         title={mode === 'in' ? t('auth.signIn') : t('auth.createAccount')}
         onPress={submit}
-        loading={busy === 'email'}
-        disabled={busy === 'google'}
+        loading={busy}
       />
     </View>
   );

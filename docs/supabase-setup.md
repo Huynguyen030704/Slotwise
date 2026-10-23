@@ -30,17 +30,18 @@ Kiểm thử hàm gộp trên máy chủ (chạy trong giao dịch luôn hoàn t
 
 Có thêm workflow `.github/workflows/supabase-deploy.yml` tự chạy `db push` khi có commit đổi `supabase/migrations/**` trên nhánh `main`. Workflow cần 3 secret trong GitHub (Settings > Secrets and variables > Actions): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`.
 
-## 3. Đăng nhập bằng Google
+## 3. Đăng nhập bằng email
 
-1. Trong Google Cloud Console, tạo OAuth client loại **Web application**. Thêm URI chuyển hướng được phép: `https://jqagldnizixhiwdgofdf.supabase.co/auth/v1/callback`.
-2. Trong bảng điều khiển Supabase mở Authentication > Providers > Google, bật lên và dán client ID cùng secret.
-3. Trong Authentication > URL Configuration thêm các URL chuyển hướng:
-   - `slotwise://auth/callback` (app điện thoại)
-   - `http://localhost:8081` và `http://localhost:8081/**` (web khi phát triển)
-   - địa chỉ web thật khi đã triển khai (ví dụ trang GitHub Pages, xem `docs/trien-khai-web.md`)
-4. Đặt Site URL là địa chỉ web thật của bạn (hoặc `http://localhost:8081` khi đang phát triển).
+App chỉ đăng nhập bằng email và mật khẩu (đã gỡ nút Google, xem ADR 0003). Cấu hình trong bảng điều khiển Supabase:
+
+1. Authentication > Providers > Email: bật **Confirm email**. Người mới phải bấm liên kết trong email mới đăng nhập được.
+2. Authentication > Providers > Google: để **tắt**.
+3. Authentication > URL Configuration:
+   - **Site URL**: địa chỉ web của app (`http://localhost:8081` khi đang phát triển). Liên kết trong email xác nhận dẫn về đây.
+   - **Redirect URLs**: `http://localhost:8081` và `http://localhost:8081/**`, thêm địa chỉ web thật khi đã triển khai (xem `docs/trien-khai-web.md`). `slotwise://auth/callback` chỉ cần nếu sau này làm lại đăng nhập mạng xã hội.
+4. Email gửi mặc định của Supabase bị giới hạn vài thư mỗi giờ, đủ để thử. Trước khi mở cho người dùng, cấu hình SMTP riêng ở Authentication > SMTP Settings.
 
 ## 4. Trước khi mở cho người dùng
 
-- Bật **Confirm email** trong Authentication > Providers > Email.
+- Kiểm tra lại **Confirm email** đã bật và đã có SMTP riêng (mục 3).
 - Xem lại giới hạn tần suất trong Authentication > Rate Limits.

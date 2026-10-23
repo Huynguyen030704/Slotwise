@@ -99,8 +99,6 @@ export default {
     },
   },
   auth: {
-    google: 'Continue with Google',
-    or: 'or use email',
     signIn: 'Sign in',
     signUp: 'Create account',
     createAccount: 'Create account',
@@ -120,7 +118,6 @@ export default {
       rateLimited: 'Too many attempts. Wait a moment and try again.',
       network: 'Could not reach the server. Check your connection and try again.',
       weakPassword: 'That password is too weak. Use a longer one.',
-      providerOff: 'Google sign-in is not turned on yet. Use email or try again later.',
       generic: 'Could not sign you in. Try again in a few minutes.',
     },
   },
@@ -130,8 +127,6 @@ export default {
     notConfigured: 'Supabase is not configured. The app still works fully offline on this device.',
     intro:
       'Sign in to sync your tasks between phone and computer. Data on this device will be merged into your account.',
-    google: 'Continue with Google',
-    or: 'or use email',
     email: 'Email',
     password: 'Password (at least 6 characters)',
     signIn: 'Sign in',

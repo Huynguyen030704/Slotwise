@@ -3,7 +3,6 @@ import { renderThemed } from '../../test/render';
 import { AuthForm } from './AuthForm';
 
 const mockAuth = {
-  signInWithGoogle: jest.fn(),
   signInWithPassword: jest.fn(),
   signUp: jest.fn(),
 };
@@ -14,7 +13,6 @@ const password = () => screen.getByLabelText('Mật khẩu');
 const submit = () => screen.getByRole('button', { name: 'Đăng nhập' });
 
 beforeEach(() => {
-  mockAuth.signInWithGoogle.mockReset().mockResolvedValue(null);
   mockAuth.signInWithPassword.mockReset().mockResolvedValue(null);
   mockAuth.signUp.mockReset().mockResolvedValue(null);
 });
@@ -57,13 +55,9 @@ describe('AuthForm', () => {
     await waitFor(() => expect(screen.getByText(/Đã gửi email xác nhận/)).toBeTruthy());
   });
 
-  it('starts Google sign-in and shows why it failed', async () => {
-    mockAuth.signInWithGoogle.mockResolvedValue('provider is not enabled');
+  it('offers no social sign-in, only email', async () => {
     await renderThemed(<AuthForm />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Tiếp tục với Google' }));
-    await waitFor(() =>
-      expect(screen.getByText(/Đăng nhập bằng Google chưa được bật/)).toBeTruthy(),
-    );
+    expect(screen.queryByText(/Google/)).toBeNull();
   });
 
   it('can show and hide the password', async () => {
