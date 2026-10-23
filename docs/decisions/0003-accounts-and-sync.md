@@ -19,9 +19,9 @@ Trạng thái: đã chấp nhận (2026-10-22)
 
 ## Khác biệt so với CLAUDE.md và các giới hạn
 
-- CLAUDE.md yêu cầu ghi sau cùng thắng **theo từng trường**. Bản này làm **theo từng dòng**: hai thiết bị sửa hai trường khác nhau của cùng một việc lúc offline thì chỉ giữ dòng mới hơn. Gộp theo từng trường cần dấu thời gian cho từng trường và nhật ký thay đổi; để dành cho milestone sau.
+- Việc gộp `tree_nodes` đã nâng lên **theo từng trường** và có nhật ký khôi phục 30 ngày: xem ADR 0005. Phần mô tả "gộp theo từng dòng" ở trên là bản đầu tiên, nay được thay thế.
 - Việc phân xử xung đột dựa vào đồng hồ thiết bị (`updated_at`). Máy sai giờ có thể thắng hoặc thua không công bằng. Giờ máy chủ (`server_updated_at`) chỉ dùng làm con trỏ kéo.
 - Token đăng nhập trên điện thoại đang lưu không mã hóa trong SQLite. Dự kiến chuyển sang `expo-secure-store` trước khi phát hành.
 - Thiết lập (`user_settings`: giờ làm việc, nửa ngày tỉnh táo, khung giờ cố định `fixed_blocks`, cách dùng `mode`) đồng bộ theo một dòng cho mỗi người. Bản sửa trên thiết bị này mà chưa đẩy lên luôn thắng; nếu không thì bản có `updated_at` mới hơn thắng. Dòng trên máy chủ được tạo với giá trị mặc định lúc đăng ký nên dấu thời gian của nó không nói lên ý định của người dùng; đó là lý do bản sửa cục bộ chưa đẩy được ưu tiên. Mỗi khung giờ cố định có thể áp dụng cho một số thứ trong tuần (`days`, thứ Hai = 1 đến Chủ nhật = 7; không có `days` nghĩa là mọi ngày). Trường này nằm trong cột `fixed_blocks` kiểu jsonb nên không cần đổi schema.
-- Chưa có nhật ký đồng bộ để khôi phục (mục 11 của CLAUDE.md có nhắc).
+- Nhật ký khôi phục đã được ghi ở máy chủ (ADR 0005); chưa có giao diện để xem hoặc khôi phục.
 - Đăng ký bằng email hiện đang tự xác nhận (thiết lập của dự án). Bật xác nhận email trong bảng điều khiển Supabase trước khi mở cho người dùng.

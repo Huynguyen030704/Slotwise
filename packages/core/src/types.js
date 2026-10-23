@@ -25,6 +25,7 @@
  * @property {string} [createdAt] ISO UTC
  * @property {string} [updatedAt] ISO UTC
  * @property {string | null} [deletedAt] ISO UTC, soft delete
+ * @property {Record<string, string>} [fieldTimes] ISO UTC of the last edit of each field group (see fields.js)
  */
 
 /**

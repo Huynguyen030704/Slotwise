@@ -1,6 +1,6 @@
 /** Local SQLite schema. Mirrors `tree_nodes` and `user_settings` planned for Supabase. */
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const MIGRATIONS = [
   // v1
@@ -37,5 +37,9 @@ export const MIGRATIONS = [
   ALTER TABLE tree_nodes ADD COLUMN dirty INTEGER NOT NULL DEFAULT 0;
   UPDATE tree_nodes SET dirty = 1;
   CREATE INDEX IF NOT EXISTS idx_tree_nodes_dirty ON tree_nodes(dirty);
+  `,
+  // v3: field-level sync. JSON of when each field group was last edited; '{}' means "use updated_at".
+  `
+  ALTER TABLE tree_nodes ADD COLUMN field_times TEXT NOT NULL DEFAULT '{}';
   `,
 ];

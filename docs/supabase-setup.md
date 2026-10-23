@@ -24,7 +24,9 @@ npx supabase db push
 npx supabase functions deploy delete-account
 ```
 
-`db push` áp các tệp `supabase/migrations/*.sql`. Trạng thái ngày 2026-10-23: dự án đã được link, cả bốn migration đã áp và hàm `delete-account` đã triển khai (điểm vào đặt trong `supabase/config.toml`). `delete-account` dùng khóa bí mật mà Supabase tự cấp cho Edge Function.
+`db push` áp các tệp `supabase/migrations/*.sql`. Trạng thái ngày 2026-10-23: dự án đã được link, cả năm migration đã áp và hàm `delete-account` đã triển khai (điểm vào đặt trong `supabase/config.toml`). `delete-account` dùng khóa bí mật mà Supabase tự cấp cho Edge Function.
+
+Kiểm thử hàm gộp trên máy chủ (chạy trong giao dịch luôn hoàn tác, không để lại dữ liệu): `npx supabase db query --linked -f supabase/tests/push_tree_nodes.sql`. Kết quả đạt là thông báo `TEST_OK`.
 
 Có thêm workflow `.github/workflows/supabase-deploy.yml` tự chạy `db push` khi có commit đổi `supabase/migrations/**` trên nhánh `main`. Workflow cần 3 secret trong GitHub (Settings > Secrets and variables > Actions): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`.
 

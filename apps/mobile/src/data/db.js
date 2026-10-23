@@ -77,6 +77,7 @@ const COLS = [
   'created_at',
   'updated_at',
   'deleted_at',
+  'field_times',
 ];
 
 /** All nodes, including soft-deleted ones (so undo and future sync keep working). */

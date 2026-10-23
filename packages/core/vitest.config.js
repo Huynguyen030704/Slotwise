@@ -18,6 +18,7 @@ export default defineConfig({
         'src/remoteRows.js',
         'src/settings.js',
         'src/buckets.js',
+        'src/fields.js',
       ],
       thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 },
     },

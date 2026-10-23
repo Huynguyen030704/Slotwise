@@ -2,6 +2,16 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { childrenOf, leaves } from '@slotwise/core';
 import { NodesProvider, useNodes } from './NodesProvider';
 import { loadNodes, saveNodes } from './db';
+import { nowIso } from './time';
+
+// A clock that moves one minute per call, so every edit gets its own timestamp.
+jest.mock('./time', () => {
+  let mockMinute = 0;
+  return {
+    ...jest.requireActual('./time'),
+    nowIso: jest.fn(() => new Date(Date.UTC(2026, 9, 22, 1, ++mockMinute)).toISOString()),
+  };
+});
 
 // An in-memory stand-in for the SQLite layer.
 jest.mock('./db', () => {
@@ -176,5 +186,70 @@ describe('NodesProvider', () => {
     await act(async () => hook.result.current.reload());
     await waitFor(() => expect(hook.result.current.ready).toBe(true));
     expect(hook.result.current.loadError).toBeNull();
+  });
+
+  describe('field times (field-level sync)', () => {
+    const times = (n) => n.fieldTimes;
+
+    it('stamps every group when a task is created', async () => {
+      const { result } = await setup();
+      await act(async () => result.current.addTask('A', null));
+      const n = result.current.nodes[0];
+      expect(Object.keys(times(n)).length).toBeGreaterThanOrEqual(10);
+      expect(new Set(Object.values(times(n))).size).toBe(1);
+      expect(db.__rows.get(n.id).fieldTimes).toEqual(times(n));
+    });
+
+    it('a rename touches only the title group', async () => {
+      const { result } = await setup();
+      await act(async () => result.current.addTask('A', null));
+      const created = result.current.nodes[0];
+      await act(async () => result.current.rename(created.id, 'B'));
+      const n = result.current.nodes[0];
+      expect(times(n).title).toBe(n.updatedAt);
+      expect(times(n).title).not.toBe(times(created).title);
+      expect(times(n).duration).toBe(times(created).duration);
+      expect(times(n).place).toBe(times(created).place);
+      expect(times(n).done).toBe(times(created).done);
+    });
+
+    it('finishing a task touches only the done group', async () => {
+      const { result } = await setup();
+      await act(async () => result.current.addTask('A', null));
+      const created = result.current.nodes[0];
+      await act(async () => result.current.setTaskDone(created.id, true, 540));
+      const n = result.current.nodes[0];
+      expect(times(n).done).toBe(n.updatedAt);
+      expect(times(n).title).toBe(times(created).title);
+    });
+
+    it('moving a task touches only its place', async () => {
+      const { result } = await setup();
+      await act(async () => result.current.addGroup('G'));
+      await act(async () => result.current.addTask('A', null));
+      const group = result.current.nodes.find((x) => x.kind === 'group');
+      const created = result.current.nodes.find((x) => x.kind === 'task');
+      await act(async () => result.current.move(created.id, { kind: 'into', id: group.id }));
+      const n = result.current.nodes.find((x) => x.id === created.id);
+      expect(times(n).place).toBe(n.updatedAt);
+      expect(times(n).title).toBe(times(created).title);
+    });
+
+    it('changing the duration and the pin are separate edits', async () => {
+      const { result } = await setup();
+      await act(async () => result.current.addTask('A', null));
+      const id = result.current.nodes[0].id;
+      await act(async () => result.current.update(id, { durationMin: 90 }));
+      const afterDuration = result.current.nodes[0];
+      await act(async () => result.current.update(id, { pinnedStartMin: 600 }));
+      const n = result.current.nodes[0];
+      expect(times(n).pin).toBe(n.updatedAt);
+      expect(times(n).duration).toBe(times(afterDuration).duration);
+      expect(times(n).duration).not.toBe(times(n).pin);
+    });
+
+    it('the clock mock is in use', () => {
+      expect(nowIso).toHaveBeenCalled();
+    });
   });
 });

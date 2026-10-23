@@ -42,7 +42,8 @@ describe('mergeRemote', () => {
     const remote = node('a', { title: 'new', updatedAt: '2026-10-22T02:00:00.000Z' });
     const { nodes, accepted } = mergeRemote([local], [remote]);
     expect(nodes[0].title).toBe('new');
-    expect(accepted).toEqual([remote]);
+    expect(accepted.map((n) => n.id)).toEqual(['a']);
+    expect(accepted[0].title).toBe('new');
   });
 
   it('keeps a newer local row and does not accept the older remote one', () => {
@@ -53,9 +54,9 @@ describe('mergeRemote', () => {
     expect(r.accepted).toEqual([]);
   });
 
-  it('keeps the local row on a tie', () => {
+  it('on a tie the server row wins so devices end up equal', () => {
     const r = mergeRemote([node('a', { title: 'mine' })], [node('a', { title: 'theirs' })]);
-    expect(r.nodes[0].title).toBe('mine');
+    expect(r.nodes[0].title).toBe('theirs');
   });
 
   it('returns the same array when nothing changed', () => {
@@ -69,10 +70,10 @@ describe('mergeRemote', () => {
     expect(mergeRemote([node('a')], [remote]).nodes[0].deletedAt).toBe(stamp);
   });
 
-  it('compares instants, not strings, so +00:00 and Z forms agree', () => {
+  it('compares instants, not strings: +00:00 and Z forms are the same moment (a tie)', () => {
     const local = node('a', { title: 'mine', updatedAt: '2026-10-22T02:00:00.000Z' });
     const remote = node('a', { title: 'theirs', updatedAt: '2026-10-22T02:00:00+00:00' });
-    expect(mergeRemote([local], [remote]).nodes[0].title).toBe('mine');
+    expect(mergeRemote([local], [remote]).nodes[0].title).toBe('theirs');
   });
 
   it('treats a missing updatedAt as the oldest', () => {
@@ -95,6 +96,7 @@ describe('remote rows', () => {
       doneStartMin: 540,
       deletedAt: '2026-10-22T04:00:00.000Z',
       parentId: 'p',
+      fieldTimes: { title: '2026-10-22T01:30:00.000Z', done: '2026-10-22T03:00:00.000Z' },
     });
     expect(remoteToNode(nodeToRemote(n), 'u1')).toEqual(n);
   });
@@ -129,5 +131,16 @@ describe('remote rows', () => {
       created_at: '1970-01-01T00:00:00.000Z',
       updated_at: '1970-01-01T00:00:00.000Z',
     });
+  });
+
+  it('reads Postgres timestamps inside field times and tolerates a missing column', () => {
+    const row = {
+      ...nodeToRemote(node('a')),
+      field_times: { title: '2026-10-22T03:00:00+00:00' },
+    };
+    expect(remoteToNode(row, 'u1').fieldTimes).toEqual({ title: '2026-10-22T03:00:00.000Z' });
+    expect(
+      remoteToNode(/** @type {any} */ ({ ...row, field_times: undefined }), 'u1').fieldTimes,
+    ).toEqual({});
   });
 });

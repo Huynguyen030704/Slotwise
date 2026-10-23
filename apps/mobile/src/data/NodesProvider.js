@@ -16,6 +16,7 @@ import {
   rollOver,
   setDone,
   softDelete,
+  stampFieldTimes,
 } from '@slotwise/core';
 import { loadNodes, saveNodes } from './db';
 import { localDate, nowIso } from './time';
@@ -122,10 +123,12 @@ export function NodesProvider({ children }) {
 
   /** Swap in `next`, save only the changed rows, optionally record an undo step. */
   const commit = useCallback(
-    /** @param {TreeNode[]} next @param {boolean} [undoable] */
-    (next, undoable = true) => {
+    /** @param {TreeNode[]} edited @param {boolean} [undoable] */
+    (edited, undoable = true) => {
       const prev = ref.current;
-      if (next === prev) return;
+      if (edited === prev) return;
+      // Remember which groups of each node this edit touched, so sync can merge field by field.
+      const next = stampFieldTimes(prev, edited);
       const before = new Map(prev.map((n) => [n.id, n]));
       const changed = next.filter((n) => before.get(n.id) !== n);
       seq.current += 1;

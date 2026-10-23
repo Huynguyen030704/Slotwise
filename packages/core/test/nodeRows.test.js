@@ -22,6 +22,7 @@ const full = {
   createdAt: 'c',
   updatedAt: 'u',
   deletedAt: 'd',
+  fieldTimes: { title: '2026-10-22T01:00:00.000Z' },
 };
 
 describe('node rows', () => {
@@ -60,5 +61,15 @@ describe('node rows', () => {
   it('falls back to safe values for unknown enum text', () => {
     const row = { ...nodeToRow(full), status: 'weird', energy: 'weird' };
     expect(rowToNode(row)).toMatchObject({ status: 'todo', energy: 'heavy' });
+  });
+
+  it('stores field times as JSON and survives bad data', () => {
+    expect(nodeToRow(full).field_times).toBe('{"title":"2026-10-22T01:00:00.000Z"}');
+    const row = nodeToRow(full);
+    expect(rowToNode({ ...row, field_times: '' }).fieldTimes).toEqual({});
+    expect(rowToNode({ ...row, field_times: 'not json' }).fieldTimes).toEqual({});
+    expect(rowToNode({ ...row, field_times: '[1,2]' }).fieldTimes).toEqual({});
+    expect(rowToNode({ ...row, field_times: '"x"' }).fieldTimes).toEqual({});
+    expect(nodeToRow({ ...full, fieldTimes: undefined }).field_times).toBe('{}');
   });
 });

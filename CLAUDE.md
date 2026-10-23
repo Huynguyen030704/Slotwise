@@ -124,7 +124,8 @@ Các bảng Supabase (phác thảo, mọi bảng có RLS `user_id = auth.uid()`)
 
 - `profiles(user_id, display_name, locale, timezone)`
 - `user_settings(user_id, work_start_min, work_end_min, peak ('morning'|'afternoon'), buffer_min, grid_min, fixed_blocks jsonb, mode ('schedule'|'tasks'|null))`: `fixed_blocks` là danh sách khung giờ cố định mỗi ngày `{id, kind: 'lunch'|'meeting', label?, startMin, endMin, days?}` (`days`: thứ trong tuần 1 = Thứ Hai đến 7 = Chủ nhật, thiếu nghĩa là mọi ngày). Người dùng chỉnh trong màn Thiết lập (giờ làm việc, giờ tỉnh táo, khung giờ cố định), đồng bộ theo tài khoản. `mode` là cách dùng: `schedule` (xếp việc theo giờ, mặc định) hoặc `tasks` (chỉ quản lý việc: danh sách + màn Hôm nay/Ngày mai/Sau này, không giờ giấc), xem ADR 0004.
-- `tree_nodes(...)` như kiểu `TreeNode` ở trên.
+- `tree_nodes(...)` như kiểu `TreeNode` ở trên, thêm `field_times jsonb` (giờ sửa gần nhất của từng nhóm trường, xem ADR 0005).
+- `node_history(user_id, node_id, group_name, old_values jsonb, changed_at)`: nhật ký giá trị cũ khi một nhóm trường bị ghi đè, giữ 30 ngày.
 - `calendar_accounts(id, user_id, provider, encrypted_refresh_token, ...)`: token mã hóa, chỉ Edge Function đọc được.
 - `calendar_events(id, user_id, account_id, external_id, start_utc, end_utc, title_hash_or_title, is_busy, updated_at)`: cache sự kiện.
 
@@ -282,7 +283,7 @@ Nguồn: prototype. Đưa thành token dùng chung, không viết cứng màu tr
 ### Milestone 2: Tài khoản và đồng bộ
 - [x] Migration `supabase/migrations/` (profiles, user_settings, tree_nodes, RLS, `push_tree_nodes`). Đã link và `db push` lên dự án Slotwise (migration `20261022010000_sync.sql`).
 - [x] Đăng nhập Google và email trong app (mã đã viết, **chưa thử với Supabase thật**). Apple để sau.
-- [x] Đồng bộ đa thiết bị: kéo/đẩy theo `updated_at`, xóa mềm, gộp dữ liệu cục bộ lần đầu (logic gộp có test trong core). Ghi sau cùng thắng theo **từng dòng**, chưa theo từng trường (xem ADR 0003).
+- [x] Đồng bộ đa thiết bị: kéo/đẩy theo `updated_at`, xóa mềm, gộp dữ liệu cục bộ lần đầu (logic gộp có test trong core). Ghi sau cùng thắng **theo từng trường** (nhóm trường, `field_times`), kèm nhật ký `node_history` giữ 30 ngày (xem ADR 0005).
 - [x] Xuất dữ liệu JSON, xóa tài khoản (Edge Function `delete-account`, đã deploy).
 - [ ] Cấu hình Google OAuth (`docs/supabase-setup.md` mục 3), thử đồng bộ thật trên hai thiết bị.
 

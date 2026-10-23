@@ -68,12 +68,14 @@ async function pull(uid) {
       .limit(PAGE);
     if (error) throw error;
     if (!data.length) break;
-    const { accepted } = mergeRemote(
+    const { accepted, mixed } = mergeRemote(
       await loadNodes(),
       data.map((r) => remoteToNode(r, uid)),
     );
+    // A row that mixes server values with newer local ones must still be pushed.
     await saveNodes(accepted, { dirty: false });
-    changed += accepted.length;
+    await saveNodes(mixed, { dirty: true });
+    changed += accepted.length + mixed.length;
     const last = data[data.length - 1].server_updated_at;
     const advanced = last !== cursor;
     cursor = last;
@@ -83,8 +85,9 @@ async function pull(uid) {
   return changed;
 }
 
+/** @returns {Promise<number>} how many rows were sent */
 async function push() {
-  if (!supabase) return;
+  if (!supabase) return 0;
   const dirty = await loadDirtyNodes();
   for (let i = 0; i < dirty.length; i += BATCH) {
     const batch = dirty.slice(i, i + BATCH);
@@ -92,6 +95,7 @@ async function push() {
     if (error) throw error;
     await markClean(batch);
   }
+  return dirty.length;
 }
 
 /**
@@ -173,8 +177,10 @@ export function SyncProvider({ children }) {
         return;
       }
       if (!bound) await setSetting('sync_user', uid);
-      const pulled = await pull(uid);
-      await push();
+      let pulled = await pull(uid);
+      // The server merges field by field, so what we pushed may differ from what it now holds:
+      // pull again to converge.
+      if ((await push()) > 0) pulled += await pull(uid);
       await syncSettings(uid, () => settingsRef.current);
       if (pulled > 0) await apiRef.current.refresh();
       setLastSyncAt(Date.now());
