@@ -185,4 +185,33 @@ describe('ListPane', () => {
       await waitFor(() => expect(db.__rows.get('a').note).toBe(''));
     });
   });
+
+  describe('hiding finished tasks', () => {
+    it('has no toggle until something is done', async () => {
+      await open([node('a', 'Việc A')]);
+      expect(screen.queryByRole('switch')).toBeNull();
+    });
+
+    it('hides finished tasks with the toggle, keeps the open ones, and shows them again', async () => {
+      await open([
+        node('g', 'Nhóm A', { kind: 'group', scheduledDate: null }),
+        node('a', 'Việc mở', { parentId: 'g' }),
+        node('b', 'Việc xong', { parentId: 'g', status: 'done' }),
+      ]);
+      await fireEvent.press(screen.getByRole('switch', { name: 'Ẩn 1 việc đã xong' }));
+      await waitFor(() => expect(screen.queryByText('Việc xong')).toBeNull());
+      expect(screen.getByText('Việc mở')).toBeTruthy();
+      expect(screen.getByText('1/2 việc')).toBeTruthy(); // the group stays, with its progress
+      expect(db.__store.get('hide_done')).toBe('1');
+      await fireEvent.press(screen.getByRole('switch', { name: 'Hiện 1 việc đã xong' }));
+      await waitFor(() => expect(screen.getByText('Việc xong')).toBeTruthy());
+    });
+
+    it('remembers the choice, and says so when everything done is hidden', async () => {
+      await open([node('a', 'Việc xong', { status: 'done' })], { hide_done: '1' });
+      expect(screen.queryByText('Việc xong')).toBeNull();
+      expect(screen.getByText(/Mọi việc đều đã xong và đang được ẩn/)).toBeTruthy();
+      expect(screen.queryByText('Bắt đầu bằng việc đầu tiên của bạn')).toBeNull();
+    });
+  });
 });

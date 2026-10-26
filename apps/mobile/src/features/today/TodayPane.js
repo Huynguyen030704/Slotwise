@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { isDone, taskBuckets } from '@slotwise/core';
 import { Target } from '../../ui/icons';
 import { useNodes } from '../../data/NodesProvider';
+import { useSettings } from '../../data/SettingsProvider';
 import { localDate } from '../../data/time';
 import { addDays, formatDay } from '../../lib/dates';
 import { AppText } from '../../ui/AppText';
@@ -16,6 +17,7 @@ import { TopBar } from '../../ui/TopBar';
 import { ActionsSheet } from '../list/ActionsSheet';
 import { TaskRow } from '../list/TaskRow';
 import { NoteSheet } from '../list/NoteSheet';
+import { DoneToggle } from '../list/DoneToggle';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing } from '../../theme/tokens';
 
@@ -28,6 +30,7 @@ export function TodayPane({ embedded = false }) {
   const { colors } = useTheme();
   const router = useRouter();
   const api = useNodes();
+  const { hideDone, setHideDone } = useSettings();
   const today = localDate();
   const tomorrow = addDays(today, 1);
 
@@ -147,8 +150,17 @@ export function TodayPane({ embedded = false }) {
           </View>
         ) : null}
 
+        {buckets.doneToday.length ? (
+          <DoneToggle
+            count={buckets.doneToday.length}
+            hidden={hideDone}
+            onToggle={() => setHideDone(!hideDone)}
+          />
+        ) : null}
         {section(t('today.sectionToday'), buckets.today)}
-        {buckets.doneToday.length ? section(t('today.sectionDone'), buckets.doneToday, true) : null}
+        {buckets.doneToday.length && !hideDone
+          ? section(t('today.sectionDone'), buckets.doneToday, true)
+          : null}
         {section(t('today.sectionTomorrow'), buckets.tomorrow)}
         {section(t('today.sectionLater'), buckets.later, true)}
       </ScrollView>

@@ -12,7 +12,7 @@ import {
   UserRound,
 } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
-import { dropTargetAt, isDone, isLeaf, progress, visibleRows } from '@slotwise/core';
+import { dropTargetAt, isDone, isLeaf, leaves, progress, visibleRows } from '@slotwise/core';
 import { useNodes } from '../../data/NodesProvider';
 import { localDate } from '../../data/time';
 import { addDays } from '../../lib/dates';
@@ -33,6 +33,7 @@ import { QuickAdd } from './QuickAdd';
 import { ActionsSheet } from './ActionsSheet';
 import { EditSheet } from './EditSheet';
 import { NoteSheet } from './NoteSheet';
+import { DoneToggle } from './DoneToggle';
 
 const EDGE = 64; // auto-scroll band at the top and bottom of the list
 const IS_WEB = Platform.OS === 'web';
@@ -89,7 +90,9 @@ export function ListPane({ embedded = false }) {
     return () => clearTimeout(id);
   }, [snack]);
 
-  const rows = useMemo(() => visibleRows(nodes), [nodes]);
+  const { hideDone, setHideDone } = useSettings();
+  const rows = useMemo(() => visibleRows(nodes, { hideDone }), [nodes, hideDone]);
+  const doneCount = useMemo(() => leaves(nodes).filter((l) => l.status === 'done').length, [nodes]);
   const groups = useMemo(
     () => rows.filter((r) => r.node.kind === 'group').map((r) => r.node),
     [rows],
@@ -296,6 +299,9 @@ export function ListPane({ embedded = false }) {
         onAddTask={(title) => api.addTask(title, activeTarget)}
         onAddGroup={(title) => api.addGroup(title)}
       />
+      {doneCount ? (
+        <DoneToggle count={doneCount} hidden={hideDone} onToggle={() => setHideDone(!hideDone)} />
+      ) : null}
     </View>
   );
 
@@ -358,28 +364,32 @@ export function ListPane({ embedded = false }) {
           contentContainerStyle={{ padding: spacing.lg, paddingBottom: 96, gap: spacing.sm }}
           ListHeaderComponent={header}
           ListEmptyComponent={
-            <View
-              style={{
-                gap: spacing.md,
-                alignItems: 'flex-start',
-                padding: spacing.lg,
-                borderWidth: 1,
-                borderColor: colors.line,
-                borderRadius: radius.lg,
-                backgroundColor: colors.surface,
-              }}
-            >
-              <AppText weight="heading" size={20}>
-                {t('list.emptyTitle')}
-              </AppText>
-              <AppText tone="muted">{t('list.emptyBody')}</AppText>
-              <Button
-                title={t('list.importNotes')}
-                variant="secondary"
-                icon={<ListPlus size={18} color={colors.ink} />}
-                onPress={() => router.push('/import')}
-              />
-            </View>
+            hideDone && doneCount ? (
+              <AppText tone="muted">{t('list.allDoneHidden')}</AppText>
+            ) : (
+              <View
+                style={{
+                  gap: spacing.md,
+                  alignItems: 'flex-start',
+                  padding: spacing.lg,
+                  borderWidth: 1,
+                  borderColor: colors.line,
+                  borderRadius: radius.lg,
+                  backgroundColor: colors.surface,
+                }}
+              >
+                <AppText weight="heading" size={20}>
+                  {t('list.emptyTitle')}
+                </AppText>
+                <AppText tone="muted">{t('list.emptyBody')}</AppText>
+                <Button
+                  title={t('list.importNotes')}
+                  variant="secondary"
+                  icon={<ListPlus size={18} color={colors.ink} />}
+                  onPress={() => router.push('/import')}
+                />
+              </View>
+            )
           }
           renderItem={({ item }) => {
             const { node, depth, hasChildren } = item;

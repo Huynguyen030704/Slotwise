@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { NodesProvider } from '../../data/NodesProvider';
+import { SettingsProvider } from '../../data/SettingsProvider';
 import { localDate } from '../../data/time';
 import { addDays } from '../../lib/dates';
 import { renderThemed } from '../../test/render';
@@ -7,8 +8,14 @@ import { TodayPane } from './TodayPane';
 
 jest.mock('../../data/db', () => {
   const mockRows = new Map();
+  const mockStore = new Map();
   return {
     __rows: mockRows,
+    __store: mockStore,
+    getSetting: jest.fn(async (k) => (mockStore.has(k) ? mockStore.get(k) : null)),
+    setSetting: jest.fn(async (k, v) => {
+      mockStore.set(k, v);
+    }),
     loadNodes: jest.fn(async () => [...mockRows.values()]),
     saveNodes: jest.fn(async (nodes) => {
       for (const n of nodes) mockRows.set(n.id, n);
@@ -42,11 +49,14 @@ const task = (id, title, o = {}) => ({
 
 async function open(rows) {
   db.__rows.clear();
+  db.__store.clear();
   for (const r of rows) db.__rows.set(r.id, r);
   await renderThemed(
-    <NodesProvider>
-      <TodayPane embedded />
-    </NodesProvider>,
+    <SettingsProvider>
+      <NodesProvider>
+        <TodayPane embedded />
+      </NodesProvider>
+    </SettingsProvider>,
   );
   await waitFor(() => expect(screen.getByText('Việc hôm nay')).toBeTruthy());
 }
@@ -56,10 +66,13 @@ const section = (name) => screen.getByRole('header', { name });
 describe('TodayPane (tasks mode)', () => {
   it('shows an invitation when there is nothing to do', async () => {
     db.__rows.clear();
+    db.__store.clear();
     await renderThemed(
-      <NodesProvider>
-        <TodayPane embedded />
-      </NodesProvider>,
+      <SettingsProvider>
+        <NodesProvider>
+          <TodayPane embedded />
+        </NodesProvider>
+      </SettingsProvider>,
     );
     await waitFor(() => expect(screen.getByText(/Hôm nay chưa có việc nào/)).toBeTruthy());
   });
@@ -123,5 +136,20 @@ describe('TodayPane (tasks mode)', () => {
     await waitFor(() => expect(screen.getByText(/Đã xóa “Việc hôm nay”/)).toBeTruthy());
     await fireEvent.press(screen.getByRole('button', { name: 'Hoàn tác' }));
     await waitFor(() => expect(screen.getByText('Việc hôm nay')).toBeTruthy());
+  });
+
+  it('hides the finished tasks with the toggle and shows them again', async () => {
+    await open([
+      task('a', 'Việc hôm nay'),
+      task('d', 'Việc đã xong', { status: 'done', doneDate: today }),
+    ]);
+    expect(screen.getByText('Việc đã xong')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('switch', { name: 'Ẩn 1 việc đã xong' }));
+    await waitFor(() => expect(screen.queryByText('Việc đã xong')).toBeNull());
+    expect(screen.getByText('Việc hôm nay')).toBeTruthy();
+    expect(db.__store.get('hide_done')).toBe('1');
+    await fireEvent.press(screen.getByRole('switch', { name: 'Hiện 1 việc đã xong' }));
+    await waitFor(() => expect(screen.getByText('Việc đã xong')).toBeTruthy());
+    expect(db.__store.get('hide_done')).toBe('0');
   });
 });
