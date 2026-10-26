@@ -42,4 +42,8 @@ export const MIGRATIONS = [
   `
   ALTER TABLE tree_nodes ADD COLUMN field_times TEXT NOT NULL DEFAULT '{}';
   `,
+  // v4: a free-text note on each task ('' means none).
+  `
+  ALTER TABLE tree_nodes ADD COLUMN note TEXT NOT NULL DEFAULT '';
+  `,
 ];

@@ -62,6 +62,7 @@ function makeNode(over) {
     createdAt: now,
     updatedAt: now,
     deletedAt: null,
+    note: '',
     ...over,
   };
 }

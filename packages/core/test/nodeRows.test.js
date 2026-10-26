@@ -22,6 +22,7 @@ const full = {
   createdAt: 'c',
   updatedAt: 'u',
   deletedAt: 'd',
+  note: 'Call the client first',
   fieldTimes: { title: '2026-10-22T01:00:00.000Z' },
 };
 
@@ -48,6 +49,7 @@ describe('node rows', () => {
       createdAt: undefined,
       updatedAt: undefined,
       deletedAt: undefined,
+      note: undefined,
     });
     expect(row).toMatchObject({
       user_id: 'local',
@@ -55,7 +57,13 @@ describe('node rows', () => {
       created_at: '',
       updated_at: '',
       deleted_at: null,
+      note: '',
     });
+  });
+
+  it('treats a row from before notes existed as having no note', () => {
+    const row = /** @type {any} */ ({ ...nodeToRow(full), note: undefined });
+    expect(rowToNode(row).note).toBe('');
   });
 
   it('falls back to safe values for unknown enum text', () => {

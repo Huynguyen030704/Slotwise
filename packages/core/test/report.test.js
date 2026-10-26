@@ -116,3 +116,42 @@ describe('taskCount', () => {
     expect(taskCount([node('x', { deletedAt: 'd' })])).toBe(0);
   });
 });
+
+describe('notes in the report', () => {
+  const withNotes = [
+    node('g', { kind: 'group', position: 'a', scheduledDate: null }),
+    node('x', { parentId: 'g', position: 'a', status: 'done', note: 'Sent to the client' }),
+    node('y', { parentId: 'g', position: 'b', note: '  Waiting for the quote\nCall on Monday  ' }),
+    node('z', { parentId: 'g', position: 'c' }),
+  ];
+  const labels = { heading: 'Report', noGroup: 'Other' };
+
+  it('collects each task note in step with the titles, trimmed, empty when missing', () => {
+    const [r] = groupReport(withNotes);
+    expect(r.doneNotes).toEqual(['Sent to the client']);
+    expect(r.todoNotes).toEqual(['Waiting for the quote\nCall on Monday', '']);
+  });
+
+  it('leaves notes out of the text unless asked', () => {
+    const text = reportToText(groupReport(withNotes), labels);
+    expect(text).not.toContain('Sent to the client');
+    expect(text).not.toContain('Call on Monday');
+  });
+
+  it('puts each note on indented lines under its task when asked', () => {
+    const text = reportToText(groupReport(withNotes), labels, { withNotes: true });
+    expect(text).toBe(
+      [
+        'Report',
+        '',
+        'g: 1/3',
+        '  ✓ x',
+        '      Sent to the client',
+        '  ○ y',
+        '      Waiting for the quote',
+        '      Call on Monday',
+        '  ○ z',
+      ].join('\n'),
+    );
+  });
+});

@@ -6,6 +6,7 @@ import {
   Flag,
   MoreHorizontal,
   Pin,
+  StickyNote,
   Wind,
   Zap,
 } from '../../ui/icons';
@@ -29,6 +30,7 @@ import { formatClock, formatDuration } from '../../lib/format';
  *   leading?: import('react').ReactNode,
  *   hideMeta?: boolean,
  *   subtitle?: string,
+ *   onNotePress?: () => void,
  * }} props
  */
 export function TaskRow({
@@ -42,6 +44,7 @@ export function TaskRow({
   leading,
   hideMeta = false,
   subtitle,
+  onNotePress,
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -114,6 +117,22 @@ export function TaskRow({
           <AppText size={13} tone="muted">
             {subtitle}
           </AppText>
+        ) : null}
+        {node.note ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('note.openLabel', { title: node.title })}
+            disabled={!onNotePress}
+            onPress={onNotePress}
+            style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs }}
+          >
+            <View style={{ marginTop: 2 }}>
+              <StickyNote size={13} color={colors.muted} />
+            </View>
+            <AppText size={13} tone="muted" numberOfLines={2} style={{ flex: 1 }}>
+              {node.note}
+            </AppText>
+          </Pressable>
         ) : null}
         {!hasChildren && !hideMeta ? (
           <View

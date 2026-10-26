@@ -40,6 +40,8 @@ export default {
     done: 'Mark as done',
     undone: 'Mark as not done',
     rename: 'Rename',
+    addNote: 'Add a note',
+    editNote: 'Edit note',
     edit: 'Edit duration and energy',
     delete: 'Delete',
     addSubtask: 'Add subtask',
@@ -61,6 +63,12 @@ export default {
     doLastHint: 'Schedule at the end of the day',
   },
   rename: { title: 'Rename', placeholder: 'New name' },
+  note: {
+    title: 'Note',
+    placeholder: 'Write what to remember or report about this task…',
+    remove: 'Delete note',
+    openLabel: 'Edit the note of “{{title}}”',
+  },
   import: {
     title: 'Import notes',
     hint: 'Paste notes from Notepad or Markdown. Bold lines are groups, numbered or indented lines are subtasks, [DONE] marks finished work, LÀM CUỐI means do last.',
@@ -256,6 +264,8 @@ export default {
     copy: 'Copy report',
     copied: 'Report copied',
     noReport: 'No tasks to report yet.',
+    withNotes: 'Include notes in the report',
+    withNotesHint: 'Turn on to put each task’s note in the report you send.',
   },
   calendar: {
     title: 'Day',

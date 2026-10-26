@@ -15,6 +15,7 @@ import { TextPromptSheet } from '../../ui/TextPromptSheet';
 import { TopBar } from '../../ui/TopBar';
 import { ActionsSheet } from '../list/ActionsSheet';
 import { TaskRow } from '../list/TaskRow';
+import { NoteSheet } from '../list/NoteSheet';
 import { useTheme } from '../../theme/ThemeProvider';
 import { radius, spacing } from '../../theme/tokens';
 
@@ -33,6 +34,7 @@ export function TodayPane({ embedded = false }) {
   const buckets = useMemo(() => taskBuckets(api.nodes, today), [api.nodes, today]);
   const [menu, setMenu] = useState(/** @type {string | null} */ (null));
   const [renaming, setRenaming] = useState(/** @type {string | null} */ (null));
+  const [noting, setNoting] = useState(/** @type {string | null} */ (null));
   const [snack, setSnack] = useState(/** @type {string | null} */ (null));
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export function TodayPane({ embedded = false }) {
             onToggleDone={() => api.setTaskDone(n.id, !isDone(api.nodes, n))}
             onToggleCollapse={() => {}}
             onMore={() => setMenu(n.id)}
+            onNotePress={() => setNoting(n.id)}
           />
         ))
       ) : (
@@ -157,6 +160,7 @@ export function TodayPane({ embedded = false }) {
         done={menuNode ? isDone(api.nodes, menuNode) : false}
         onToggleDone={() => menuNode && api.setTaskDone(menuNode.id, !isDone(api.nodes, menuNode))}
         onRename={() => setRenaming(menu)}
+        onNote={() => setNoting(menu)}
         onToday={
           menuNode?.scheduledDate === today
             ? undefined
@@ -173,6 +177,11 @@ export function TodayPane({ embedded = false }) {
           api.remove(menuNode.id);
           setSnack(t('list.deleted', { title: menuNode.title }));
         }}
+      />
+      <NoteSheet
+        node={byId(noting)}
+        onSave={(note) => noting && api.update(noting, { note })}
+        onClose={() => setNoting(null)}
       />
       <TextPromptSheet
         visible={!!renaming}

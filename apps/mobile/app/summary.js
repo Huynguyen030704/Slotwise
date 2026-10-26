@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -21,6 +21,7 @@ export default function SummaryScreen() {
   const router = useRouter();
   const api = useNodes();
   const today = localDate();
+  const [withNotes, setWithNotes] = useState(false);
   const [snack, setSnack] = useState(
     /** @type {{ message: string, undo: boolean } | null} */ (null),
   );
@@ -31,7 +32,7 @@ export default function SummaryScreen() {
     return () => clearTimeout(id);
   }, [snack]);
 
-  const { todayTotal, todayDone, open, report, text } = useMemo(() => {
+  const { todayTotal, todayDone, open, report, text, hasNotes } = useMemo(() => {
     const ls = leaves(api.nodes);
     const planned = ls.filter((l) => l.scheduledDate === today || l.doneDate === today);
     const rep = groupReport(api.nodes);
@@ -40,12 +41,17 @@ export default function SummaryScreen() {
       todayDone: planned.filter((l) => l.status === 'done').length,
       open: unfinishedOn(api.nodes, today),
       report: rep,
-      text: reportToText(rep, {
-        heading: t('summary.reportHeading', { date: formatDay(today, i18n.language) }),
-        noGroup: t('list.noGroup'),
-      }),
+      hasNotes: rep.some((r) => [...r.doneNotes, ...r.todoNotes].some(Boolean)),
+      text: reportToText(
+        rep,
+        {
+          heading: t('summary.reportHeading', { date: formatDay(today, i18n.language) }),
+          noGroup: t('list.noGroup'),
+        },
+        { withNotes },
+      ),
     };
-  }, [api.nodes, today, t, i18n.language]);
+  }, [api.nodes, today, t, i18n.language, withNotes]);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
@@ -105,6 +111,30 @@ export default function SummaryScreen() {
 
         <View style={{ gap: spacing.sm }}>
           <AppText weight="bodyBold">{t('summary.report')}</AppText>
+          {hasNotes ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: spacing.md,
+                minHeight: 44,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <AppText weight="bodyMedium">{t('summary.withNotes')}</AppText>
+                <AppText size={13} tone="muted">
+                  {t('summary.withNotesHint')}
+                </AppText>
+              </View>
+              <Switch
+                value={withNotes}
+                onValueChange={setWithNotes}
+                accessibilityLabel={t('summary.withNotes')}
+                trackColor={{ true: colors.accent, false: colors.line }}
+              />
+            </View>
+          ) : null}
           {report.length ? (
             report.map((r) => (
               <View
@@ -121,15 +151,29 @@ export default function SummaryScreen() {
                 <AppText weight="bodyBold">
                   {r.title ?? t('list.noGroup')} · {r.done}/{r.total}
                 </AppText>
-                {r.doneTitles.map((x) => (
-                  <AppText key={`d-${x}`} size={14} tone="ok">
-                    ✓ {x}
-                  </AppText>
+                {r.doneTitles.map((x, i) => (
+                  <View key={`d-${i}`}>
+                    <AppText size={14} tone="ok">
+                      ✓ {x}
+                    </AppText>
+                    {withNotes && r.doneNotes[i] ? (
+                      <AppText size={13} tone="muted" style={{ marginLeft: spacing.lg }}>
+                        {r.doneNotes[i]}
+                      </AppText>
+                    ) : null}
+                  </View>
                 ))}
-                {r.todoTitles.map((x) => (
-                  <AppText key={`t-${x}`} size={14} tone="muted">
-                    ○ {x}
-                  </AppText>
+                {r.todoTitles.map((x, i) => (
+                  <View key={`t-${i}`}>
+                    <AppText size={14} tone="muted">
+                      ○ {x}
+                    </AppText>
+                    {withNotes && r.todoNotes[i] ? (
+                      <AppText size={13} tone="muted" style={{ marginLeft: spacing.lg }}>
+                        {r.todoNotes[i]}
+                      </AppText>
+                    ) : null}
+                  </View>
                 ))}
               </View>
             ))

@@ -248,6 +248,19 @@ describe('NodesProvider', () => {
       expect(times(n).duration).not.toBe(times(n).pin);
     });
 
+    it('writing a note touches only the note group, and an empty note leaves none', async () => {
+      const { result } = await setup();
+      await act(async () => result.current.addTask('A', null));
+      const created = result.current.nodes[0];
+      expect(created.note).toBe('');
+      await act(async () => result.current.update(created.id, { note: 'Ask finance' }));
+      const n = result.current.nodes[0];
+      expect(n.note).toBe('Ask finance');
+      expect(times(n).note).toBe(n.updatedAt);
+      expect(times(n).title).toBe(times(created).title);
+      expect(db.__rows.get(n.id).note).toBe('Ask finance');
+    });
+
     it('the clock mock is in use', () => {
       expect(nowIso).toHaveBeenCalled();
     });

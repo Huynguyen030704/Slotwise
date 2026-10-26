@@ -54,6 +54,7 @@ describe('field groups', () => {
         'doLast',
         'scheduledDate',
         'pinnedStartMin',
+        'note',
         'deletedAt',
       ]),
     );
@@ -229,5 +230,44 @@ describe('mergeRemote with field groups', () => {
     expect(r.nodes).toBe(local);
     expect(r.accepted).toEqual([]);
     expect(r.mixed).toEqual([]);
+  });
+});
+
+describe('note group', () => {
+  it('editing the note stamps only the note group', () => {
+    const base = node('a');
+    const [edited] = stampFieldTimes(
+      [base],
+      [{ ...base, note: 'Check the contract', updatedAt: T1 }],
+    );
+    expect(edited.fieldTimes?.note).toBe(T1);
+    expect(edited.fieldTimes?.title).toBe(T0);
+  });
+
+  it('a missing note and an empty note are the same, so nothing is stamped', () => {
+    const base = node('a');
+    const [same] = stampFieldTimes([base], [{ ...base, note: '', updatedAt: T1 }]);
+    expect(same.fieldTimes?.note).toBe('1970-01-01T00:00:00.000Z');
+  });
+
+  it('keeps a note written on one device when another device edited the title', () => {
+    const base = node('a');
+    const local = stampFieldTimes([base], [{ ...base, note: 'Local note', updatedAt: T2 }])[0];
+    const remote = stampFieldTimes([base], [{ ...base, title: 'Renamed', updatedAt: T1 }])[0];
+    const { node: merged, needsPush } = mergeNode(local, remote);
+    expect(merged.title).toBe('Renamed');
+    expect(merged.note).toBe('Local note');
+    expect(needsPush).toBe(true);
+  });
+
+  it('an unstamped empty note counts as never edited, so a renamed node cannot erase a note', () => {
+    const base = node('a');
+    expect(groupTime(base, 'note')).toBe('1970-01-01T00:00:00.000Z');
+    expect(groupTime({ ...base, note: 'Kept' }, 'note')).toBe(base.updatedAt);
+    const renamed = stampFieldTimes([base], [{ ...base, title: 'New title', updatedAt: T2 }])[0];
+    const remote = { ...base, note: 'From phone', fieldTimes: { note: T1 } };
+    const { node: merged } = mergeNode(renamed, remote);
+    expect(merged.title).toBe('New title');
+    expect(merged.note).toBe('From phone');
   });
 });

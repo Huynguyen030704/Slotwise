@@ -151,4 +151,38 @@ describe('ListPane', () => {
     expect(screen.queryByRole('button', { name: /Sửa thời lượng/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'Để sau' })).toBeTruthy();
   });
+
+  describe('task notes', () => {
+    it('shows a note under the task and nothing for a task without one', async () => {
+      await open([
+        node('a', 'Việc có ghi chú', { note: 'Gọi khách trước' }),
+        node('b', 'Việc trơn'),
+      ]);
+      expect(screen.getByText('Gọi khách trước')).toBeTruthy();
+      expect(screen.getAllByRole('button', { name: /Sửa ghi chú của/ })).toHaveLength(1);
+    });
+
+    it('adds a note from the actions menu and saves it', async () => {
+      await open([node('a', 'Việc A')]);
+      await fireEvent.press(screen.getByRole('button', { name: /Thao tác với “Việc A”/ }));
+      await fireEvent.press(await screen.findByRole('button', { name: 'Thêm ghi chú' }));
+      await fireEvent.changeText(await screen.findByLabelText('Ghi chú'), '  Hỏi lại kế toán  ');
+      await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+      await waitFor(() => expect(screen.getByText('Hỏi lại kế toán')).toBeTruthy());
+      await waitFor(() => expect(db.__rows.get('a').note).toBe('Hỏi lại kế toán'));
+    });
+
+    it('edits and deletes an existing note', async () => {
+      await open([node('a', 'Việc A', { note: 'Bản cũ' })]);
+      await fireEvent.press(screen.getByRole('button', { name: /Sửa ghi chú của “Việc A”/ }));
+      await fireEvent.changeText(await screen.findByLabelText('Ghi chú'), 'Bản mới');
+      await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+      await waitFor(() => expect(screen.getByText('Bản mới')).toBeTruthy());
+
+      await fireEvent.press(screen.getByRole('button', { name: /Sửa ghi chú của “Việc A”/ }));
+      await fireEvent.press(await screen.findByRole('button', { name: 'Xóa ghi chú' }));
+      await waitFor(() => expect(screen.queryByText('Bản mới')).toBeNull());
+      await waitFor(() => expect(db.__rows.get('a').note).toBe(''));
+    });
+  });
 });

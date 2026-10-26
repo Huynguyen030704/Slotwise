@@ -32,6 +32,7 @@ import { GroupRow } from './GroupRow';
 import { QuickAdd } from './QuickAdd';
 import { ActionsSheet } from './ActionsSheet';
 import { EditSheet } from './EditSheet';
+import { NoteSheet } from './NoteSheet';
 
 const EDGE = 64; // auto-scroll band at the top and bottom of the list
 const IS_WEB = Platform.OS === 'web';
@@ -59,6 +60,7 @@ export function ListPane({ embedded = false }) {
   const [renaming, setRenaming] = useState(/** @type {string | null} */ (null));
   const [subtaskOf, setSubtaskOf] = useState(/** @type {string | null} */ (null));
   const [editing, setEditing] = useState(/** @type {string | null} */ (null));
+  const [noting, setNoting] = useState(/** @type {string | null} */ (null));
   const [pinning, setPinning] = useState(/** @type {string | null} */ (null));
   const [snack, setSnack] = useState(
     /** @type {{ message: string, undo: boolean } | null} */ (null),
@@ -412,6 +414,7 @@ export function ListPane({ embedded = false }) {
                   onToggleDone={() => api.setTaskDone(node.id, !done)}
                   onToggleCollapse={() => api.toggleCollapsed(node.id)}
                   onMore={() => setMenu(node.id)}
+                  onNotePress={() => setNoting(node.id)}
                 />
               );
             }
@@ -438,6 +441,7 @@ export function ListPane({ embedded = false }) {
         onClose={() => setMenu(null)}
         onRename={() => setRenaming(menu)}
         onEdit={byClock ? () => setEditing(menu) : undefined}
+        onNote={() => setNoting(menu)}
         onAddSubtask={() => setSubtaskOf(menu)}
         onMove={(dropTarget) => menu && api.move(menu, dropTarget)}
         onPin={byClock ? () => setPinning(menu) : undefined}
@@ -481,6 +485,11 @@ export function ListPane({ embedded = false }) {
         node={byId(pinning)}
         onClose={() => setPinning(null)}
         onPinned={(message) => setSnack({ message, undo: true })}
+      />
+      <NoteSheet
+        node={byId(noting)}
+        onSave={(note) => noting && api.update(noting, { note })}
+        onClose={() => setNoting(null)}
       />
       <EditSheet
         node={byId(editing)}
