@@ -257,16 +257,20 @@ export function moveNode(nodes, id, target, now) {
 }
 
 /**
- * Rows to show in the list: depth-first, skipping everything below a collapsed node.
+ * Rows to show in the list: depth-first, skipping everything below a collapsed node. With
+ * `hideDone`, tasks that are done (a leaf that is ticked, or a parent whose leaves all are) are
+ * left out together with what is under them; groups always stay so their progress remains visible.
  * @param {TreeNode[]} nodes
+ * @param {{ hideDone?: boolean }} [options]
  * @returns {{ node: TreeNode, depth: number, hasChildren: boolean }[]}
  */
-export function visibleRows(nodes) {
+export function visibleRows(nodes, { hideDone = false } = {}) {
   /** @type {{ node: TreeNode, depth: number, hasChildren: boolean }[]} */
   const out = [];
   /** @param {string | null} parentId @param {number} depth */
   const walk = (parentId, depth) => {
     for (const n of childrenOf(nodes, parentId)) {
+      if (hideDone && n.kind === 'task' && isDone(nodes, n)) continue;
       out.push({
         node: n,
         depth,

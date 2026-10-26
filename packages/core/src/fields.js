@@ -24,6 +24,7 @@ export const FIELD_GROUPS = {
   doLast: ['doLast'],
   date: ['scheduledDate'],
   pin: ['pinnedStartMin'],
+  note: ['note'],
   deleted: ['deletedAt'],
 };
 
@@ -41,8 +42,19 @@ const ms = (s) => (s ? Date.parse(s) : 0);
  * @returns {string}
  */
 export function groupTime(node, group) {
-  return node.fieldTimes?.[group] ?? node.updatedAt ?? EPOCH;
+  const stamped = node.fieldTimes?.[group];
+  if (stamped) return stamped;
+  // A group added after a node was written: an empty note was never edited, so it must not beat a
+  // note someone wrote on another device just because the node was renamed later.
+  if (group === 'note' && !node.note) return EPOCH;
+  return node.updatedAt ?? EPOCH;
 }
+
+/**
+ * What a field holds when a node does not have it (a node saved before the field existed).
+ * @type {Partial<Record<keyof TreeNode, unknown>>}
+ */
+const EMPTY = { note: '' };
 
 /**
  * @param {TreeNode} a
@@ -50,7 +62,9 @@ export function groupTime(node, group) {
  * @param {string} group
  */
 function sameGroup(a, b, group) {
-  return FIELD_GROUPS[group].every((f) => (a[f] ?? null) === (b[f] ?? null));
+  return FIELD_GROUPS[group].every(
+    (f) => (a[f] ?? EMPTY[f] ?? null) === (b[f] ?? EMPTY[f] ?? null),
+  );
 }
 
 /**

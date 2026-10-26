@@ -10,6 +10,8 @@ import { childrenOf, leaves, leavesUnder, liveNodes } from './tree.js';
  * @property {number} total
  * @property {string[]} doneTitles
  * @property {string[]} todoTitles
+ * @property {string[]} doneNotes note of each done task, same order as doneTitles ('' if none)
+ * @property {string[]} todoNotes note of each open task, same order as todoTitles
  */
 
 /**
@@ -25,6 +27,8 @@ export function groupReport(nodes) {
     total: ls.length,
     doneTitles: ls.filter((l) => l.status === 'done').map((l) => l.title),
     todoTitles: ls.filter((l) => l.status !== 'done').map((l) => l.title),
+    doneNotes: ls.filter((l) => l.status === 'done').map((l) => l.note?.trim() ?? ''),
+    todoNotes: ls.filter((l) => l.status !== 'done').map((l) => l.note?.trim() ?? ''),
   });
   const groups = childrenOf(nodes, null).filter((n) => n.kind === 'group');
   const out = groups.map((g) => make(g.title, leavesUnder(nodes, g))).filter((r) => r.total > 0);
@@ -34,17 +38,25 @@ export function groupReport(nodes) {
 }
 
 /**
- * Plain-text report to paste into chat or email.
+ * Plain-text report to paste into chat or email. Notes are left out unless `withNotes` is set; a
+ * note goes on indented lines under its task.
  * @param {GroupReport[]} report
  * @param {{ heading: string, noGroup: string }} labels
+ * @param {{ withNotes?: boolean }} [options]
  * @returns {string}
  */
-export function reportToText(report, labels) {
+export function reportToText(report, labels, { withNotes = false } = {}) {
   const lines = [labels.heading, ''];
+  /** @param {string} mark @param {string[]} titles @param {string[]} notes */
+  const items = (mark, titles, notes) =>
+    titles.forEach((title, i) => {
+      lines.push(`  ${mark} ${title}`);
+      if (withNotes && notes[i]) for (const row of notes[i].split('\n')) lines.push(`      ${row}`);
+    });
   for (const r of report) {
     lines.push(`${r.title ?? labels.noGroup}: ${r.done}/${r.total}`);
-    for (const t of r.doneTitles) lines.push(`  ✓ ${t}`);
-    for (const t of r.todoTitles) lines.push(`  ○ ${t}`);
+    items('✓', r.doneTitles, r.doneNotes);
+    items('○', r.todoTitles, r.todoNotes);
     lines.push('');
   }
   return lines.join('\n').trimEnd();

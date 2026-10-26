@@ -27,6 +27,8 @@ import { getSetting, setSetting } from './db';
  * @property {(p: Peak) => void} setPeak
  * @property {boolean} welcomeSeen the user has already passed the welcome / sign-in screen
  * @property {() => void} markWelcomeSeen
+ * @property {boolean} hideDone tasks that are done are hidden in the lists (this device only, not synced)
+ * @property {(hide: boolean) => void} setHideDone
  */
 
 const SettingsContext = createContext(/** @type {SettingsApi | null} */ (null));
@@ -37,6 +39,7 @@ export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(/** @type {DaySettings} */ (DEFAULT_SETTINGS));
   const [dirty, setDirty] = useState(false);
   const [welcomeSeen, setWelcomeSeen] = useState(false);
+  const [hideDone, setHideDoneState] = useState(false);
   const latest = useRef(settings);
   const dirtyRef = useRef(false);
 
@@ -47,8 +50,9 @@ export function SettingsProvider({ children }) {
       getSetting('day_settings_dirty'),
       getSetting('peak'),
       getSetting('welcome_seen'),
+      getSetting('hide_done'),
     ])
-      .then(([stored, storedDirty, legacyPeak, welcome]) => {
+      .then(([stored, storedDirty, legacyPeak, welcome, hidden]) => {
         if (!alive) return;
         let parsed = null;
         try {
@@ -64,6 +68,7 @@ export function SettingsProvider({ children }) {
         dirtyRef.current = storedDirty === '1';
         setDirty(storedDirty === '1');
         setWelcomeSeen(welcome === '1');
+        setHideDoneState(hidden === '1');
       })
       .catch(() => {})
       .finally(() => {
@@ -118,6 +123,11 @@ export function SettingsProvider({ children }) {
     setSetting('welcome_seen', '1').catch(() => {});
   }, []);
 
+  const setHideDone = useCallback((/** @type {boolean} */ hide) => {
+    setHideDoneState(hide);
+    setSetting('hide_done', hide ? '1' : '0').catch(() => {});
+  }, []);
+
   const value = useMemo(
     () => ({
       ready,
@@ -132,6 +142,8 @@ export function SettingsProvider({ children }) {
       setPeak,
       welcomeSeen,
       markWelcomeSeen,
+      hideDone,
+      setHideDone,
     }),
     [
       ready,
@@ -144,6 +156,8 @@ export function SettingsProvider({ children }) {
       setPeak,
       welcomeSeen,
       markWelcomeSeen,
+      hideDone,
+      setHideDone,
     ],
   );
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

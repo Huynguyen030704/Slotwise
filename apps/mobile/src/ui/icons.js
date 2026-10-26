@@ -53,3 +53,4 @@ export { default as Zap } from 'lucide-react-native/icons/zap';
 export { default as Settings } from 'lucide-react-native/icons/settings';
 export { default as Clock } from 'lucide-react-native/icons/clock';
 export { default as Cloud } from 'lucide-react-native/icons/cloud';
+export { default as StickyNote } from 'lucide-react-native/icons/sticky-note';

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Sheet } from './Sheet';
 import { Button } from './Button';
 import { Input } from './Input';
+import { useFocusWhenOpen } from '../lib/useFocusWhenOpen';
 import { spacing } from '../theme/tokens';
 
 /**
@@ -21,6 +22,7 @@ export function TextPromptSheet({
 }) {
   const { t } = useTranslation();
   const [text, setText] = useState(initial);
+  const inputRef = useFocusWhenOpen(visible, initial);
   useEffect(() => {
     if (visible) setText(initial);
   }, [visible, initial]);
@@ -32,6 +34,7 @@ export function TextPromptSheet({
   return (
     <Sheet visible={visible} title={title} onClose={onClose}>
       <Input
+        ref={inputRef}
         autoFocus
         value={text}
         onChangeText={setText}

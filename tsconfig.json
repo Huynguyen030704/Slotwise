@@ -15,7 +15,8 @@
     "packages/core/src/**/*.js",
     "packages/core/test/**/*.js",
     "apps/mobile/app/**/*.js",
-    "apps/mobile/src/**/*.js"
+    "apps/mobile/src/**/*.js",
+    "apps/mobile/src/**/*.d.ts"
   ],
   "exclude": ["apps/mobile/**/*.test.js", "apps/mobile/src/test/**"]
 }

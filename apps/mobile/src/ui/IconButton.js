@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { AppText } from './AppText';
+import { Tooltip } from './Tooltip';
 import { canHover, tappable } from '../lib/touch';
 import { useTheme } from '../theme/ThemeProvider';
-import { MIN_TOUCH, radius, spacing } from '../theme/tokens';
+import { MIN_TOUCH, radius } from '../theme/tokens';
 
 const LONG_PRESS_TIP_MS = 1600;
 
@@ -16,6 +16,7 @@ const LONG_PRESS_TIP_MS = 1600;
 export function IconButton({ label, onPress, children, disabled, filled, size = MIN_TOUCH }) {
   const { colors } = useTheme();
   const [tip, setTip] = useState(false);
+  const anchor = useRef(/** @type {any} */ (null));
   const timer = useRef(/** @type {ReturnType<typeof setTimeout> | null} */ (null));
   useEffect(
     () => () => {
@@ -37,7 +38,7 @@ export function IconButton({ label, onPress, children, disabled, filled, size = 
     timer.current = setTimeout(() => setTip(false), LONG_PRESS_TIP_MS);
   };
   return (
-    <View style={{ zIndex: tip ? 20 : 0 }}>
+    <View ref={anchor}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label}
@@ -63,31 +64,7 @@ export function IconButton({ label, onPress, children, disabled, filled, size = 
       >
         {children}
       </Pressable>
-      {tip ? (
-        <View
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            top: size + spacing.xs,
-            right: 0,
-            width: 240,
-            alignItems: 'flex-end',
-          }}
-        >
-          <View
-            style={{
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.sm,
-              borderRadius: radius.sm,
-              backgroundColor: colors.ink,
-            }}
-          >
-            <AppText size={13} style={{ color: colors.bg }}>
-              {label}
-            </AppText>
-          </View>
-        </View>
-      ) : null}
+      {tip ? <Tooltip label={label} size={size} anchorRef={anchor} /> : null}
     </View>
   );
 }

@@ -151,4 +151,67 @@ describe('ListPane', () => {
     expect(screen.queryByRole('button', { name: /Sửa thời lượng/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'Để sau' })).toBeTruthy();
   });
+
+  describe('task notes', () => {
+    it('shows a note under the task and nothing for a task without one', async () => {
+      await open([
+        node('a', 'Việc có ghi chú', { note: 'Gọi khách trước' }),
+        node('b', 'Việc trơn'),
+      ]);
+      expect(screen.getByText('Gọi khách trước')).toBeTruthy();
+      expect(screen.getAllByRole('button', { name: /Sửa ghi chú của/ })).toHaveLength(1);
+    });
+
+    it('adds a note from the actions menu and saves it', async () => {
+      await open([node('a', 'Việc A')]);
+      await fireEvent.press(screen.getByRole('button', { name: /Thao tác với “Việc A”/ }));
+      await fireEvent.press(await screen.findByRole('button', { name: 'Thêm ghi chú' }));
+      await fireEvent.changeText(await screen.findByLabelText('Ghi chú'), '  Hỏi lại kế toán  ');
+      await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+      await waitFor(() => expect(screen.getByText('Hỏi lại kế toán')).toBeTruthy());
+      await waitFor(() => expect(db.__rows.get('a').note).toBe('Hỏi lại kế toán'));
+    });
+
+    it('edits and deletes an existing note', async () => {
+      await open([node('a', 'Việc A', { note: 'Bản cũ' })]);
+      await fireEvent.press(screen.getByRole('button', { name: /Sửa ghi chú của “Việc A”/ }));
+      await fireEvent.changeText(await screen.findByLabelText('Ghi chú'), 'Bản mới');
+      await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+      await waitFor(() => expect(screen.getByText('Bản mới')).toBeTruthy());
+
+      await fireEvent.press(screen.getByRole('button', { name: /Sửa ghi chú của “Việc A”/ }));
+      await fireEvent.press(await screen.findByRole('button', { name: 'Xóa ghi chú' }));
+      await waitFor(() => expect(screen.queryByText('Bản mới')).toBeNull());
+      await waitFor(() => expect(db.__rows.get('a').note).toBe(''));
+    });
+  });
+
+  describe('hiding finished tasks', () => {
+    it('has no toggle until something is done', async () => {
+      await open([node('a', 'Việc A')]);
+      expect(screen.queryByRole('switch')).toBeNull();
+    });
+
+    it('hides finished tasks with the toggle, keeps the open ones, and shows them again', async () => {
+      await open([
+        node('g', 'Nhóm A', { kind: 'group', scheduledDate: null }),
+        node('a', 'Việc mở', { parentId: 'g' }),
+        node('b', 'Việc xong', { parentId: 'g', status: 'done' }),
+      ]);
+      await fireEvent.press(screen.getByRole('switch', { name: 'Ẩn 1 việc đã xong' }));
+      await waitFor(() => expect(screen.queryByText('Việc xong')).toBeNull());
+      expect(screen.getByText('Việc mở')).toBeTruthy();
+      expect(screen.getByText('1/2 việc')).toBeTruthy(); // the group stays, with its progress
+      expect(db.__store.get('hide_done')).toBe('1');
+      await fireEvent.press(screen.getByRole('switch', { name: 'Hiện 1 việc đã xong' }));
+      await waitFor(() => expect(screen.getByText('Việc xong')).toBeTruthy());
+    });
+
+    it('remembers the choice, and says so when everything done is hidden', async () => {
+      await open([node('a', 'Việc xong', { status: 'done' })], { hide_done: '1' });
+      expect(screen.queryByText('Việc xong')).toBeNull();
+      expect(screen.getByText(/Mọi việc đều đã xong và đang được ẩn/)).toBeTruthy();
+      expect(screen.queryByText('Bắt đầu bằng việc đầu tiên của bạn')).toBeNull();
+    });
+  });
 });

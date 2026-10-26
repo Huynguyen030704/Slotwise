@@ -322,3 +322,33 @@ describe('dropTargetAt', () => {
     expect(dropTargetAt(sample(), 'a', 'zzz', 0.5)).toBeNull();
   });
 });
+
+describe('visibleRows with hideDone', () => {
+  const tree = [
+    node('g', { kind: 'group' }),
+    node('open', { parentId: 'g', position: 'a' }),
+    node('done', { parentId: 'g', position: 'b', status: 'done' }),
+    node('parentDone', { parentId: 'g', position: 'c' }),
+    node('c1', { parentId: 'parentDone', position: 'a', status: 'done' }),
+    node('c2', { parentId: 'parentDone', position: 'b', status: 'done' }),
+    node('parentOpen', { parentId: 'g', position: 'd' }),
+    node('d1', { parentId: 'parentOpen', position: 'a', status: 'done' }),
+    node('d2', { parentId: 'parentOpen', position: 'b' }),
+    node('doneLoose', { position: 'z', status: 'done' }),
+  ];
+  const ids = (/** @type {{ node: { id: string } }[]} */ rows) => rows.map((r) => r.node.id);
+
+  it('shows everything by default', () => {
+    expect(ids(visibleRows(tree))).toHaveLength(tree.length);
+    expect(ids(visibleRows(tree, {}))).toHaveLength(tree.length);
+  });
+
+  it('leaves out done tasks and parents whose leaves are all done, even a done subtask of an open parent', () => {
+    expect(ids(visibleRows(tree, { hideDone: true }))).toEqual(['g', 'open', 'parentOpen', 'd2']);
+  });
+
+  it('keeps a group even when every task in it is done', () => {
+    const allDone = [node('g', { kind: 'group' }), node('x', { parentId: 'g', status: 'done' })];
+    expect(ids(visibleRows(allDone, { hideDone: true }))).toEqual(['g']);
+  });
+});

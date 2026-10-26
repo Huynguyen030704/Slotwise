@@ -96,9 +96,15 @@ describe('remote rows', () => {
       doneStartMin: 540,
       deletedAt: '2026-10-22T04:00:00.000Z',
       parentId: 'p',
+      note: 'Ask finance',
       fieldTimes: { title: '2026-10-22T01:30:00.000Z', done: '2026-10-22T03:00:00.000Z' },
     });
     expect(remoteToNode(nodeToRemote(n), 'u1')).toEqual(n);
+  });
+
+  it('reads a server row without a note column value as having no note', () => {
+    const row = /** @type {any} */ ({ ...nodeToRemote(node('a')), note: undefined });
+    expect(remoteToNode(row, 'u1').note).toBe('');
   });
 
   it('normalises Postgres timestamps and unknown enums', () => {

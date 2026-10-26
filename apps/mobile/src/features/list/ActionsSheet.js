@@ -12,6 +12,7 @@ import {
   Pin,
   PinOff,
   SlidersHorizontal,
+  StickyNote,
   Trash2,
 } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
@@ -53,6 +54,7 @@ function Item({ icon, label, onPress, danger }) {
  *   onClose: () => void,
  *   onRename: () => void,
  *   onEdit?: () => void,
+ *   onNote?: () => void,
  *   onAddSubtask?: () => void,
  *   onDelete: () => void,
  *   onMove?: (target: import('@slotwise/core/tree.js').DropTarget) => void,
@@ -71,6 +73,7 @@ export function ActionsSheet({
   onClose,
   onRename,
   onEdit,
+  onNote,
   onAddSubtask,
   onDelete,
   onMove,
@@ -113,6 +116,13 @@ export function ActionsSheet({
         />
       ) : null}
       <Item icon={<Pencil {...ic} />} label={t('actions.rename')} onPress={run(onRename)} />
+      {node.kind === 'task' && onNote ? (
+        <Item
+          icon={<StickyNote {...ic} />}
+          label={t(node.note ? 'actions.editNote' : 'actions.addNote')}
+          onPress={run(onNote)}
+        />
+      ) : null}
       {leaf && onEdit ? (
         <Item
           icon={<SlidersHorizontal {...ic} />}
