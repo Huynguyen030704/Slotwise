@@ -7,6 +7,7 @@ import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
 import { AppText } from '../../ui/AppText';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useFocusWhenOpen } from '../../lib/useFocusWhenOpen';
 import { spacing } from '../../theme/tokens';
 
 const MAX_LENGTH = 2000;
@@ -23,6 +24,7 @@ export function NoteSheet({ node, onSave, onClose }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const [text, setText] = useState('');
+  const inputRef = useFocusWhenOpen(!!node, node?.note ?? '');
 
   useEffect(() => {
     if (node) setText(node.note ?? '');
@@ -39,6 +41,7 @@ export function NoteSheet({ node, onSave, onClose }) {
         {node?.title}
       </AppText>
       <Input
+        ref={inputRef}
         autoFocus
         multiline
         value={text}
