@@ -271,3 +271,28 @@ describe('note group', () => {
     expect(merged.note).toBe('From phone');
   });
 });
+
+describe('hidden group', () => {
+  it('hiding stamps only the hidden group, and an unset flag equals false', () => {
+    const base = node('g', { kind: 'group' });
+    const [hidden] = stampFieldTimes([base], [{ ...base, hidden: true, updatedAt: T1 }]);
+    expect(hidden.fieldTimes?.hidden).toBe(T1);
+    expect(hidden.fieldTimes?.title).toBe(T0);
+    const [same] = stampFieldTimes([base], [{ ...base, hidden: false, updatedAt: T1 }]);
+    expect(same.fieldTimes?.hidden).toBe('1970-01-01T00:00:00.000Z');
+  });
+
+  it('a group renamed later on one device does not un-hide it from another', () => {
+    const base = node('g', { kind: 'group' });
+    const renamed = stampFieldTimes([base], [{ ...base, title: 'New', updatedAt: T2 }])[0];
+    const remote = { ...base, hidden: true, fieldTimes: { hidden: T1 } };
+    const { node: merged } = mergeNode(renamed, remote);
+    expect(merged.title).toBe('New');
+    expect(merged.hidden).toBe(true);
+  });
+
+  it('an unstamped hidden group counts as edited at its last update', () => {
+    const base = node('g', { kind: 'group', hidden: true });
+    expect(groupTime(base, 'hidden')).toBe(base.updatedAt);
+  });
+});

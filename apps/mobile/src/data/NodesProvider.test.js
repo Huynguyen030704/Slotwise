@@ -66,6 +66,51 @@ describe('NodesProvider', () => {
     expect(saveNodes.mock.calls.at(-1)[0]).toHaveLength(1);
   });
 
+  it('returns the id of what it adds, and null for a blank title', async () => {
+    const { result } = await setup();
+    let groupId;
+    let taskId;
+    let blank;
+    await act(async () => {
+      groupId = result.current.addGroup('G');
+      taskId = result.current.addTask('A', groupId);
+      blank = result.current.addTask('   ', null);
+    });
+    expect(result.current.nodes.map((n) => n.id)).toEqual([groupId, taskId]);
+    expect(blank).toBeNull();
+  });
+
+  it('leaves a hidden group and its tasks out of nodes but keeps them in allNodes', async () => {
+    const { result } = await setup();
+    let group;
+    await act(async () => {
+      group = result.current.addGroup('G');
+      result.current.addTask('A', group);
+      result.current.addTask('Loose', null);
+    });
+    expect(result.current.nodes).toHaveLength(3);
+    await act(async () => result.current.update(group, { hidden: true }));
+    expect(result.current.nodes.map((n) => n.title)).toEqual(['Loose']);
+    expect(result.current.allNodes).toHaveLength(3);
+    expect(db.__rows.get(group).hidden).toBe(true);
+    expect(result.current.nodes).not.toBe(result.current.allNodes);
+    await act(async () => result.current.undo());
+    expect(result.current.nodes).toHaveLength(3);
+  });
+
+  it('collapses everything at once, and reveals a row inside a collapsed group', async () => {
+    const { result } = await setup();
+    let taskId;
+    await act(async () => {
+      const g = result.current.addGroup('G');
+      taskId = result.current.addTask('A', g);
+    });
+    await act(async () => result.current.setAllCollapsed(true));
+    expect(result.current.nodes.find((n) => n.kind === 'group').collapsed).toBe(true);
+    await act(async () => result.current.reveal(taskId));
+    expect(result.current.nodes.find((n) => n.kind === 'group').collapsed).toBe(false);
+  });
+
   it('ignores blank titles', async () => {
     const { result } = await setup();
     await act(async () => result.current.addTask('   ', null));

@@ -72,7 +72,7 @@ export default function AccountScreen() {
   const router = useRouter();
   const auth = useAuth();
   const sync = useSync();
-  const { nodes } = useNodes();
+  const { allNodes: nodes } = useNodes();
 
   const [message, setMessage] = useState(
     /** @type {{ text: string, tone: 'danger' | 'ok' } | null} */ (null),

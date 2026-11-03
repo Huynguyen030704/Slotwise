@@ -10,13 +10,16 @@ import {
 import { randomUUID } from 'expo-crypto';
 import {
   childrenOf,
+  expandAncestors,
   moveNode,
   parseNotes,
   positionBetween,
   rollOver,
+  setAllCollapsed,
   setDone,
   softDelete,
   stampFieldTimes,
+  withoutHidden,
 } from '@slotwise/core';
 import { loadNodes, saveNodes } from './db';
 import { localDate, nowIso } from './time';
@@ -63,23 +66,27 @@ function makeNode(over) {
     updatedAt: now,
     deletedAt: null,
     note: '',
+    hidden: false,
     ...over,
   };
 }
 
 /**
  * @typedef {object} NodesApi
- * @property {TreeNode[]} nodes all nodes including soft-deleted
+ * @property {TreeNode[]} nodes what the views show: every node including soft-deleted ones, except hidden groups and what is under them
+ * @property {TreeNode[]} allNodes every node, hidden groups included (export, the hidden-groups list)
  * @property {boolean} ready
  * @property {Error | null} loadError set when the local database could not be opened
  * @property {() => void} reload try opening the local database again
  * @property {boolean} canUndo
- * @property {(title: string) => void} addGroup
- * @property {(title: string, parentId: string | null) => void} addTask
+ * @property {(title: string) => string | null} addGroup returns the new id, null for a blank title
+ * @property {(title: string, parentId: string | null) => string | null} addTask returns the new id, null for a blank title
  * @property {(id: string, title: string) => void} rename
  * @property {(id: string, patch: Partial<TreeNode>) => void} update
  * @property {(id: string, done: boolean, startMin?: number | null) => void} setTaskDone
  * @property {(id: string) => void} toggleCollapsed
+ * @property {(collapsed: boolean) => void} setAllCollapsed collapse or expand every group and parent
+ * @property {(id: string) => void} reveal open the groups and parents above a node so its row shows
  * @property {(id: string) => void} remove
  * @property {(id: string, target: import('@slotwise/core/tree.js').DropTarget) => void} move
  * @property {(text: string) => { added: number, skipped: number }} importNotes
@@ -147,29 +154,37 @@ export function NodesProvider({ children }) {
     [],
   );
 
+  const shown = useMemo(() => withoutHidden(nodes), [nodes]);
   const api = useMemo(
     () =>
       /** @type {NodesApi} */ ({
-        nodes,
+        nodes: shown,
+        allNodes: nodes,
         ready,
         loadError,
         reload: () => setAttempt((n) => n + 1),
         canUndo: undoDepth > 0,
         addGroup: (title) => {
           const t = title.trim();
-          if (!t) return;
-          commit([
-            ...ref.current,
-            makeNode({ kind: 'group', title: t, position: appendPosition(ref.current, null) }),
-          ]);
+          if (!t) return null;
+          const created = makeNode({
+            kind: 'group',
+            title: t,
+            position: appendPosition(ref.current, null),
+          });
+          commit([...ref.current, created]);
+          return created.id;
         },
         addTask: (title, parentId) => {
           const t = title.trim();
-          if (!t) return;
-          commit([
-            ...ref.current,
-            makeNode({ title: t, parentId, position: appendPosition(ref.current, parentId) }),
-          ]);
+          if (!t) return null;
+          const created = makeNode({
+            title: t,
+            parentId,
+            position: appendPosition(ref.current, parentId),
+          });
+          commit([...ref.current, created]);
+          return created.id;
         },
         rename: (id, title) => {
           const t = title.trim();
@@ -196,6 +211,12 @@ export function NodesProvider({ children }) {
             ),
             false,
           );
+        },
+        setAllCollapsed: (collapsed) =>
+          commit(setAllCollapsed(ref.current, collapsed, nowIso()), false),
+        reveal: (id) => {
+          const next = expandAncestors(ref.current, id, nowIso());
+          if (next !== ref.current) commit(next, false);
         },
         remove: (id) => commit(softDelete(ref.current, id, nowIso())),
         move: (id, target) => commit(moveNode(ref.current, id, target, nowIso())),
@@ -263,7 +284,7 @@ export function NodesProvider({ children }) {
           commit([...restored, ...added], false);
         },
       }),
-    [nodes, ready, loadError, undoDepth, commit],
+    [nodes, shown, ready, loadError, undoDepth, commit],
   );
 
   return <NodesContext.Provider value={api}>{children}</NodesContext.Provider>;

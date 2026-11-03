@@ -22,6 +22,7 @@
  * @property {string} created_at
  * @property {string} updated_at
  * @property {string | null} deleted_at
+ * @property {number} hidden
  * @property {string} note
  * @property {string} field_times JSON text of `fieldTimes`
  */
@@ -64,6 +65,7 @@ export function nodeToRow(n) {
     created_at: n.createdAt ?? '',
     updated_at: n.updatedAt ?? '',
     deleted_at: n.deletedAt ?? null,
+    hidden: n.hidden ? 1 : 0,
     note: n.note ?? '',
     field_times: JSON.stringify(n.fieldTimes ?? {}),
   };
@@ -94,6 +96,7 @@ export function rowToNode(r) {
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     deletedAt: r.deleted_at,
+    hidden: r.hidden === 1,
     note: r.note ?? '',
     fieldTimes: parseTimes(r.field_times),
   };

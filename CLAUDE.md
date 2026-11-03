@@ -105,6 +105,7 @@ interface TreeNode {
   scheduledDate: string | null;// 'YYYY-MM-DD' theo múi giờ người dùng
   pinnedStartMin: number | null;// phút từ 00:00, bội của 15; null: để app tự chọn
   note: string;               // ghi chú tự do của việc, '' là không có (ADR 0006)
+  hidden: boolean;            // chỉ nhóm: ẩn nhóm và mọi việc trong nó khỏi mọi màn hình (ADR 0008)
   doneAt: string | null;       // ISO UTC
   doneDate: string | null;     // 'YYYY-MM-DD', ngày hoàn thành
   doneStartMin: number | null; // giờ bắt đầu lúc hoàn thành, để giữ chỗ trên lịch

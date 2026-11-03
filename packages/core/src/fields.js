@@ -25,6 +25,7 @@ export const FIELD_GROUPS = {
   date: ['scheduledDate'],
   pin: ['pinnedStartMin'],
   note: ['note'],
+  hidden: ['hidden'],
   deleted: ['deletedAt'],
 };
 
@@ -36,6 +37,17 @@ const EPOCH = new Date(0).toISOString();
 const ms = (s) => (s ? Date.parse(s) : 0);
 
 /**
+ * Groups added after nodes already existed: while such a node still holds the empty value and has
+ * no stamp, the group was never edited. Treating it as edited at `updatedAt` would let a node that
+ * was merely renamed later wipe a note or un-hide a group changed on another device.
+ * @type {Record<string, (node: TreeNode) => boolean>}
+ */
+const UNSET_IS_NEVER_EDITED = {
+  note: (node) => !node.note,
+  hidden: (node) => !node.hidden,
+};
+
+/**
  * When a group of this node was last edited.
  * @param {TreeNode} node
  * @param {string} group
@@ -44,9 +56,7 @@ const ms = (s) => (s ? Date.parse(s) : 0);
 export function groupTime(node, group) {
   const stamped = node.fieldTimes?.[group];
   if (stamped) return stamped;
-  // A group added after a node was written: an empty note was never edited, so it must not beat a
-  // note someone wrote on another device just because the node was renamed later.
-  if (group === 'note' && !node.note) return EPOCH;
+  if (group in UNSET_IS_NEVER_EDITED && UNSET_IS_NEVER_EDITED[group](node)) return EPOCH;
   return node.updatedAt ?? EPOCH;
 }
 
@@ -54,7 +64,7 @@ export function groupTime(node, group) {
  * What a field holds when a node does not have it (a node saved before the field existed).
  * @type {Partial<Record<keyof TreeNode, unknown>>}
  */
-const EMPTY = { note: '' };
+const EMPTY = { note: '', hidden: false };
 
 /**
  * @param {TreeNode} a

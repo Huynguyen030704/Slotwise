@@ -7,6 +7,7 @@ import {
   Check,
   Clock,
   CornerDownRight,
+  EyeOff,
   FolderInput,
   Pencil,
   Pin,
@@ -55,6 +56,7 @@ function Item({ icon, label, onPress, danger }) {
  *   onRename: () => void,
  *   onEdit?: () => void,
  *   onNote?: () => void,
+ *   onHide?: () => void,
  *   onAddSubtask?: () => void,
  *   onDelete: () => void,
  *   onMove?: (target: import('@slotwise/core/tree.js').DropTarget) => void,
@@ -74,6 +76,7 @@ export function ActionsSheet({
   onRename,
   onEdit,
   onNote,
+  onHide,
   onAddSubtask,
   onDelete,
   onMove,
@@ -116,6 +119,9 @@ export function ActionsSheet({
         />
       ) : null}
       <Item icon={<Pencil {...ic} />} label={t('actions.rename')} onPress={run(onRename)} />
+      {node.kind === 'group' && onHide ? (
+        <Item icon={<EyeOff {...ic} />} label={t('actions.hideGroup')} onPress={run(onHide)} />
+      ) : null}
       {node.kind === 'task' && onNote ? (
         <Item
           icon={<StickyNote {...ic} />}
