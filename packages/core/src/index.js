@@ -5,6 +5,7 @@ export { positionBetween, initialPositions } from './position.js';
 export {
   childrenOf,
   dropTargetAt,
+  expandAncestors,
   flatten,
   isDone,
   isLeaf,
@@ -14,6 +15,7 @@ export {
   moveNode,
   progress,
   restore,
+  setAllCollapsed,
   setDone,
   softDelete,
   visibleRows,
@@ -28,6 +30,7 @@ export {
   snapToGrid,
 } from './day.js';
 export { addDays } from './dates.js';
+export { fold, searchRows } from './search.js';
 export { groupReport, reportToText, rollOver, taskCount, unfinishedOn } from './report.js';
 export { nodeToRemote, remoteToNode } from './remoteRows.js';
 export { mergeRemote } from './sync.js';

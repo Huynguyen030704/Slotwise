@@ -10,10 +10,12 @@ import {
 import { randomUUID } from 'expo-crypto';
 import {
   childrenOf,
+  expandAncestors,
   moveNode,
   parseNotes,
   positionBetween,
   rollOver,
+  setAllCollapsed,
   setDone,
   softDelete,
   stampFieldTimes,
@@ -74,12 +76,14 @@ function makeNode(over) {
  * @property {Error | null} loadError set when the local database could not be opened
  * @property {() => void} reload try opening the local database again
  * @property {boolean} canUndo
- * @property {(title: string) => void} addGroup
- * @property {(title: string, parentId: string | null) => void} addTask
+ * @property {(title: string) => string | null} addGroup returns the new id, null for a blank title
+ * @property {(title: string, parentId: string | null) => string | null} addTask returns the new id, null for a blank title
  * @property {(id: string, title: string) => void} rename
  * @property {(id: string, patch: Partial<TreeNode>) => void} update
  * @property {(id: string, done: boolean, startMin?: number | null) => void} setTaskDone
  * @property {(id: string) => void} toggleCollapsed
+ * @property {(collapsed: boolean) => void} setAllCollapsed collapse or expand every group and parent
+ * @property {(id: string) => void} reveal open the groups and parents above a node so its row shows
  * @property {(id: string) => void} remove
  * @property {(id: string, target: import('@slotwise/core/tree.js').DropTarget) => void} move
  * @property {(text: string) => { added: number, skipped: number }} importNotes
@@ -157,19 +161,25 @@ export function NodesProvider({ children }) {
         canUndo: undoDepth > 0,
         addGroup: (title) => {
           const t = title.trim();
-          if (!t) return;
-          commit([
-            ...ref.current,
-            makeNode({ kind: 'group', title: t, position: appendPosition(ref.current, null) }),
-          ]);
+          if (!t) return null;
+          const created = makeNode({
+            kind: 'group',
+            title: t,
+            position: appendPosition(ref.current, null),
+          });
+          commit([...ref.current, created]);
+          return created.id;
         },
         addTask: (title, parentId) => {
           const t = title.trim();
-          if (!t) return;
-          commit([
-            ...ref.current,
-            makeNode({ title: t, parentId, position: appendPosition(ref.current, parentId) }),
-          ]);
+          if (!t) return null;
+          const created = makeNode({
+            title: t,
+            parentId,
+            position: appendPosition(ref.current, parentId),
+          });
+          commit([...ref.current, created]);
+          return created.id;
         },
         rename: (id, title) => {
           const t = title.trim();
@@ -196,6 +206,12 @@ export function NodesProvider({ children }) {
             ),
             false,
           );
+        },
+        setAllCollapsed: (collapsed) =>
+          commit(setAllCollapsed(ref.current, collapsed, nowIso()), false),
+        reveal: (id) => {
+          const next = expandAncestors(ref.current, id, nowIso());
+          if (next !== ref.current) commit(next, false);
         },
         remove: (id) => commit(softDelete(ref.current, id, nowIso())),
         move: (id, target) => commit(moveNode(ref.current, id, target, nowIso())),

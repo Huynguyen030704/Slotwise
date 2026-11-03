@@ -310,3 +310,37 @@ export function dropTargetAt(nodes, draggedId, overId, fraction) {
   }
   return moveNode(nodes, draggedId, target, '') === nodes ? null : target;
 }
+
+/**
+ * Collapse or expand every group and parent task at once. Nodes with no children and nodes that
+ * already have the wanted state are returned as they are.
+ * @param {TreeNode[]} nodes
+ * @param {boolean} collapsed
+ * @param {string} now ISO UTC, becomes `updatedAt` of the nodes that change
+ * @returns {TreeNode[]}
+ */
+export function setAllCollapsed(nodes, collapsed, now) {
+  const parents = new Set(liveNodes(nodes).map((n) => n.parentId));
+  return nodes.map((n) =>
+    parents.has(n.id) && !n.deletedAt && !!n.collapsed !== collapsed
+      ? { ...n, collapsed, updatedAt: now }
+      : n,
+  );
+}
+
+/**
+ * Open every collapsed group or parent above a node, so that its row is on screen.
+ * @param {TreeNode[]} nodes
+ * @param {string} id
+ * @param {string} now ISO UTC
+ * @returns {TreeNode[]} the same array when nothing had to open
+ */
+export function expandAncestors(nodes, id, now) {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const open = new Set();
+  for (let cur = byId.get(id)?.parentId; cur; cur = byId.get(cur)?.parentId) {
+    if (byId.get(cur)?.collapsed) open.add(cur);
+  }
+  if (!open.size) return nodes;
+  return nodes.map((n) => (open.has(n.id) ? { ...n, collapsed: false, updatedAt: now } : n));
+}

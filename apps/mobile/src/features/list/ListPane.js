@@ -12,7 +12,17 @@ import {
   UserRound,
 } from '../../ui/icons';
 import { useTranslation } from 'react-i18next';
-import { dropTargetAt, isDone, isLeaf, leaves, progress, visibleRows } from '@slotwise/core';
+import {
+  childrenOf,
+  dropTargetAt,
+  isDone,
+  isLeaf,
+  leaves,
+  liveNodes,
+  progress,
+  searchRows,
+  visibleRows,
+} from '@slotwise/core';
 import { useNodes } from '../../data/NodesProvider';
 import { localDate } from '../../data/time';
 import { addDays } from '../../lib/dates';
@@ -33,7 +43,8 @@ import { QuickAdd } from './QuickAdd';
 import { ActionsSheet } from './ActionsSheet';
 import { EditSheet } from './EditSheet';
 import { NoteSheet } from './NoteSheet';
-import { DoneToggle } from './DoneToggle';
+import { GroupJumpSheet } from './GroupJumpSheet';
+import { ListToolbar } from './ListToolbar';
 
 const EDGE = 64; // auto-scroll band at the top and bottom of the list
 const IS_WEB = Platform.OS === 'web';
@@ -63,6 +74,11 @@ export function ListPane({ embedded = false }) {
   const [editing, setEditing] = useState(/** @type {string | null} */ (null));
   const [noting, setNoting] = useState(/** @type {string | null} */ (null));
   const [pinning, setPinning] = useState(/** @type {string | null} */ (null));
+  const [query, setQuery] = useState('');
+  const [jumpOpen, setJumpOpen] = useState(false);
+  const [flashId, setFlashId] = useState(/** @type {string | null} */ (null));
+  const pendingScroll = useRef(/** @type {string | null} */ (null));
+  const [scrollTick, setScrollTick] = useState(0); // bumps when a scroll is requested
   const [snack, setSnack] = useState(
     /** @type {{ message: string, undo: boolean } | null} */ (null),
   );
@@ -91,12 +107,27 @@ export function ListPane({ embedded = false }) {
   }, [snack]);
 
   const { hideDone, setHideDone } = useSettings();
-  const rows = useMemo(() => visibleRows(nodes, { hideDone }), [nodes, hideDone]);
-  const doneCount = useMemo(() => leaves(nodes).filter((l) => l.status === 'done').length, [nodes]);
-  const groups = useMemo(
-    () => rows.filter((r) => r.node.kind === 'group').map((r) => r.node),
-    [rows],
+  const searching = query.trim().length > 0;
+  const rows = useMemo(
+    () =>
+      searching
+        ? searchRows(nodes, query, { hideDone, isDone: (n) => isDone(nodes, n) })
+        : visibleRows(nodes, { hideDone }),
+    [nodes, query, searching, hideDone],
   );
+  const doneCount = useMemo(() => leaves(nodes).filter((l) => l.status === 'done').length, [nodes]);
+  const groups = useMemo(() => childrenOf(nodes, null).filter((n) => n.kind === 'group'), [nodes]);
+  const groupInfo = useMemo(
+    () => groups.map((g) => ({ id: g.id, title: g.title, ...progress(nodes, g) })),
+    [groups, nodes],
+  );
+  // Groups and parent tasks that can be folded, and whether any is open right now.
+  const { canCollapse, anyExpanded } = useMemo(() => {
+    const live = liveNodes(nodes);
+    const parents = new Set(live.map((n) => n.parentId));
+    const foldable = live.filter((n) => parents.has(n.id));
+    return { canCollapse: foldable.length > 0, anyExpanded: foldable.some((n) => !n.collapsed) };
+  }, [nodes]);
   const byId = (/** @type {string | null} */ id) => nodes.find((n) => n.id === id) ?? null;
   const menuNode = byId(menu);
 
@@ -105,6 +136,35 @@ export function ListPane({ embedded = false }) {
 
   const nodesRef = useRef(nodes);
   nodesRef.current = nodes;
+
+  /** Open the way to a row, scroll to it and light it up for a moment. */
+  const focusNode = useCallback(
+    (/** @type {string} */ id) => {
+      api.reveal(id);
+      setQuery('');
+      setFlashId(id);
+      pendingScroll.current = id;
+      setScrollTick((n) => n + 1);
+    },
+    [api],
+  );
+
+  useEffect(() => {
+    const id = pendingScroll.current;
+    if (!id) return;
+    const index = rows.findIndex((r) => r.node.id === id);
+    if (index < 0) return;
+    pendingScroll.current = null;
+    requestAnimationFrame(() =>
+      listRef.current?.scrollToIndex({ index, viewPosition: 0.2, animated: true }),
+    );
+  }, [rows, scrollTick]);
+
+  useEffect(() => {
+    if (!flashId) return undefined;
+    const id = setTimeout(() => setFlashId(null), 2200);
+    return () => clearTimeout(id);
+  }, [flashId]);
 
   /** Work out the drop target under the pointer (list rows, or the timeline). */
   const refresh = useCallback(() => {
@@ -296,11 +356,28 @@ export function ListPane({ embedded = false }) {
         groups={groups}
         target={activeTarget}
         onTargetChange={setTarget}
-        onAddTask={(title) => api.addTask(title, activeTarget)}
-        onAddGroup={(title) => api.addGroup(title)}
+        onAddTask={(title) => {
+          const id = api.addTask(title, activeTarget);
+          if (id) focusNode(id);
+        }}
+        onAddGroup={(title) => {
+          const id = api.addGroup(title);
+          if (id) focusNode(id);
+        }}
       />
-      {doneCount ? (
-        <DoneToggle count={doneCount} hidden={hideDone} onToggle={() => setHideDone(!hideDone)} />
+      {nodes.length ? (
+        <ListToolbar
+          query={query}
+          onQuery={setQuery}
+          doneCount={doneCount}
+          hideDone={hideDone}
+          onToggleDone={() => setHideDone(!hideDone)}
+          canCollapse={canCollapse}
+          anyExpanded={anyExpanded}
+          onToggleAll={() => api.setAllCollapsed(anyExpanded)}
+          groupCount={groups.length}
+          onJump={() => setJumpOpen(true)}
+        />
       ) : null}
     </View>
   );
@@ -347,7 +424,16 @@ export function ListPane({ embedded = false }) {
         <FlatList
           ref={listRef}
           data={rows}
-          extraData={[hint, draggingId]}
+          extraData={[hint, draggingId, flashId]}
+          onScrollToIndexFailed={({ index, averageItemLength }) => {
+            // Rows differ in height, so the list may not have measured the target yet: go near it,
+            // then try again once those rows exist.
+            listRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
+            setTimeout(
+              () => listRef.current?.scrollToIndex({ index, viewPosition: 0.2, animated: true }),
+              120,
+            );
+          }}
           keyExtractor={(r) => r.node.id}
           keyboardShouldPersistTaps="handled"
           scrollEventThrottle={16}
@@ -364,7 +450,9 @@ export function ListPane({ embedded = false }) {
           contentContainerStyle={{ padding: spacing.lg, paddingBottom: 96, gap: spacing.sm }}
           ListHeaderComponent={header}
           ListEmptyComponent={
-            hideDone && doneCount ? (
+            searching ? (
+              <AppText tone="muted">{t('list.searchNone', { q: query.trim() })}</AppText>
+            ) : hideDone && doneCount ? (
               <AppText tone="muted">{t('list.allDoneHidden')}</AppText>
             ) : (
               <View
@@ -435,7 +523,11 @@ export function ListPane({ embedded = false }) {
                   else rowRefs.current.delete(node.id);
                 }}
                 collapsable={false}
-                style={{ opacity: draggingId === node.id ? 0.4 : 1 }}
+                style={{
+                  opacity: draggingId === node.id ? 0.4 : 1,
+                  borderRadius: radius.lg,
+                  backgroundColor: flashId === node.id ? colors.peakBg : 'transparent',
+                }}
               >
                 {content}
                 {rowHint ? <DropIndicator mode={rowHint} /> : null}
@@ -445,6 +537,16 @@ export function ListPane({ embedded = false }) {
         />
       </View>
 
+      <GroupJumpSheet
+        visible={jumpOpen}
+        groups={groupInfo}
+        onPick={(id) => {
+          setJumpOpen(false);
+          if (byId(id)?.collapsed) api.toggleCollapsed(id); // a group you jump to shows its tasks
+          focusNode(id);
+        }}
+        onClose={() => setJumpOpen(false)}
+      />
       <ActionsSheet
         node={menuNode}
         nodes={nodes}

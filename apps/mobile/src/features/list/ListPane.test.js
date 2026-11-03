@@ -214,4 +214,63 @@ describe('ListPane', () => {
       expect(screen.queryByText('Bắt đầu bằng việc đầu tiên của bạn')).toBeNull();
     });
   });
+
+  describe('navigating a long list', () => {
+    const many = () => [
+      node('g1', 'Dự án Alpha', { kind: 'group', scheduledDate: null, position: 'a' }),
+      node('a1', 'Soạn báo cáo tuần', { parentId: 'g1', position: 'a' }),
+      node('a2', 'Gọi khách hàng', { parentId: 'g1', position: 'b' }),
+      node('g2', 'Dự án Beta', { kind: 'group', scheduledDate: null, position: 'b' }),
+      node('b1', 'Thiết kế logo', { parentId: 'g2', position: 'a' }),
+    ];
+
+    it('searches without accents, keeps the group above a match, and clears', async () => {
+      await open(many());
+      await fireEvent.changeText(screen.getByLabelText('Tìm việc hoặc nhóm…'), 'BAO cao');
+      await waitFor(() => expect(screen.queryByText('Gọi khách hàng')).toBeNull());
+      expect(screen.getByText('Soạn báo cáo tuần')).toBeTruthy();
+      expect(screen.queryByText('Thiết kế logo')).toBeNull();
+      await fireEvent.press(screen.getByRole('button', { name: 'Xóa tìm kiếm' }));
+      await waitFor(() => expect(screen.getByText('Thiết kế logo')).toBeTruthy());
+      expect(screen.getByText('Gọi khách hàng')).toBeTruthy();
+    });
+
+    it('says so when nothing matches the search', async () => {
+      await open(many());
+      await fireEvent.changeText(screen.getByLabelText('Tìm việc hoặc nhóm…'), 'khong co gi');
+      await waitFor(() => expect(screen.getByText(/Không có việc hay nhóm nào khớp/)).toBeTruthy());
+    });
+
+    it('collapses and expands every group with one button', async () => {
+      await open(many());
+      await fireEvent.press(screen.getByRole('button', { name: 'Thu gọn tất cả' }));
+      await waitFor(() => expect(screen.queryByText('Thiết kế logo')).toBeNull());
+      expect(screen.queryByText('Soạn báo cáo tuần')).toBeNull();
+      await fireEvent.press(screen.getByRole('button', { name: 'Mở tất cả' }));
+      await waitFor(() => expect(screen.getByText('Thiết kế logo')).toBeTruthy());
+      expect(screen.getByText('Soạn báo cáo tuần')).toBeTruthy();
+    });
+
+    it('jumps to a collapsed group and opens it', async () => {
+      await open(many());
+      await fireEvent.press(screen.getByRole('button', { name: 'Thu gọn tất cả' }));
+      await waitFor(() => expect(screen.queryByText('Thiết kế logo')).toBeNull());
+      await fireEvent.press(screen.getByRole('button', { name: 'Đến nhóm…' }));
+      await fireEvent.press(
+        await screen.findByRole('button', { name: 'Đến nhóm “Dự án Beta”, 0/1 việc' }),
+      );
+      await waitFor(() => expect(screen.getByText('Thiết kế logo')).toBeTruthy());
+      expect(screen.queryByText('Soạn báo cáo tuần')).toBeNull(); // the other group stays folded
+    });
+
+    it('opens a collapsed group when a task is added to it', async () => {
+      await open(many().map((n) => (n.id === 'g1' ? { ...n, collapsed: true } : n)));
+      expect(screen.queryByText('Soạn báo cáo tuần')).toBeNull();
+      await fireEvent.press(screen.getByRole('radio', { name: 'Dự án Alpha' }));
+      await fireEvent.changeText(addBox(), 'Việc mới thêm');
+      await fireEvent(addBox(), 'submitEditing');
+      await waitFor(() => expect(screen.getByText('Việc mới thêm')).toBeTruthy());
+      expect(screen.getByText('Soạn báo cáo tuần')).toBeTruthy();
+    });
+  });
 });
