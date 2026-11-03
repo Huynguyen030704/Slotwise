@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { ChevronsDownUp, ChevronsUpDown, FolderTree, Search, X } from '../../ui/icons';
+import { Archive, ChevronsDownUp, ChevronsUpDown, FolderTree, Search, X } from '../../ui/icons';
 import { ChipButton } from '../../ui/ChipButton';
 import { IconButton } from '../../ui/IconButton';
 import { Input } from '../../ui/Input';
@@ -22,6 +22,8 @@ import { DoneToggle } from './DoneToggle';
  *   onToggleAll: () => void,
  *   groupCount: number,
  *   onJump: () => void,
+ *   hiddenCount: number,
+ *   onOpenHidden: () => void,
  * }} props
  */
 export function ListToolbar({
@@ -35,6 +37,8 @@ export function ListToolbar({
   onToggleAll,
   groupCount,
   onJump,
+  hiddenCount,
+  onOpenHidden,
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -75,6 +79,13 @@ export function ListToolbar({
             label={t(anyExpanded ? 'list.collapseAll' : 'list.expandAll')}
             icon={(p) => (anyExpanded ? <ChevronsDownUp {...p} /> : <ChevronsUpDown {...p} />)}
             onPress={onToggleAll}
+          />
+        ) : null}
+        {hiddenCount ? (
+          <ChipButton
+            label={t('hidden.open', { n: hiddenCount })}
+            icon={(p) => <Archive {...p} />}
+            onPress={onOpenHidden}
           />
         ) : null}
         {groupCount > 1 ? (

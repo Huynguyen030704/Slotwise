@@ -7,6 +7,7 @@ export {
   dropTargetAt,
   expandAncestors,
   flatten,
+  hiddenGroups,
   isDone,
   isLeaf,
   leaves,
@@ -19,6 +20,7 @@ export {
   setDone,
   softDelete,
   visibleRows,
+  withoutHidden,
 } from './tree.js';
 export {
   DEFAULT_GRID,

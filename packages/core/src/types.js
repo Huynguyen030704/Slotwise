@@ -24,6 +24,7 @@
  * @property {number | null} doneStartMin
  * @property {string} [createdAt] ISO UTC
  * @property {string} [updatedAt] ISO UTC
+ * @property {boolean} [hidden] a group the person put away: it and everything in it is left out of every view (see tree.js `withoutHidden`)
  * @property {string} [note] free text the person adds to a task; '' (or missing) means none
  * @property {string | null} [deletedAt] ISO UTC, soft delete
  * @property {Record<string, string>} [fieldTimes] ISO UTC of the last edit of each field group (see fields.js)

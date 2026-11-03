@@ -19,6 +19,7 @@ import {
   setDone,
   softDelete,
   stampFieldTimes,
+  withoutHidden,
 } from '@slotwise/core';
 import { loadNodes, saveNodes } from './db';
 import { localDate, nowIso } from './time';
@@ -65,13 +66,15 @@ function makeNode(over) {
     updatedAt: now,
     deletedAt: null,
     note: '',
+    hidden: false,
     ...over,
   };
 }
 
 /**
  * @typedef {object} NodesApi
- * @property {TreeNode[]} nodes all nodes including soft-deleted
+ * @property {TreeNode[]} nodes what the views show: every node including soft-deleted ones, except hidden groups and what is under them
+ * @property {TreeNode[]} allNodes every node, hidden groups included (export, the hidden-groups list)
  * @property {boolean} ready
  * @property {Error | null} loadError set when the local database could not be opened
  * @property {() => void} reload try opening the local database again
@@ -151,10 +154,12 @@ export function NodesProvider({ children }) {
     [],
   );
 
+  const shown = useMemo(() => withoutHidden(nodes), [nodes]);
   const api = useMemo(
     () =>
       /** @type {NodesApi} */ ({
-        nodes,
+        nodes: shown,
+        allNodes: nodes,
         ready,
         loadError,
         reload: () => setAttempt((n) => n + 1),
@@ -279,7 +284,7 @@ export function NodesProvider({ children }) {
           commit([...restored, ...added], false);
         },
       }),
-    [nodes, ready, loadError, undoDepth, commit],
+    [nodes, shown, ready, loadError, undoDepth, commit],
   );
 
   return <NodesContext.Provider value={api}>{children}</NodesContext.Provider>;

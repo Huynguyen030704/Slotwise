@@ -22,6 +22,7 @@
  * @property {string} created_at
  * @property {string} updated_at
  * @property {string | null} deleted_at
+ * @property {boolean} [hidden] missing on rows written before groups could be hidden
  * @property {string} [note] missing on rows written before notes existed
  * @property {Record<string, string>} field_times
  */
@@ -50,6 +51,7 @@ export function nodeToRemote(n) {
     created_at: n.createdAt ?? new Date(0).toISOString(),
     updated_at: n.updatedAt ?? new Date(0).toISOString(),
     deleted_at: n.deletedAt ?? null,
+    hidden: !!n.hidden,
     note: n.note ?? '',
     field_times: n.fieldTimes ?? {},
   };
@@ -88,6 +90,7 @@ export function remoteToNode(r, userId) {
     createdAt: /** @type {string} */ (iso(r.created_at)),
     updatedAt: /** @type {string} */ (iso(r.updated_at)),
     deletedAt: iso(r.deleted_at),
+    hidden: r.hidden ?? false,
     note: r.note ?? '',
     fieldTimes: Object.fromEntries(
       Object.entries(r.field_times ?? {}).map(([k, v]) => [k, /** @type {string} */ (iso(v))]),

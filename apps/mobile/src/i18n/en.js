@@ -46,6 +46,7 @@ export default {
     done: 'Mark as done',
     undone: 'Mark as not done',
     rename: 'Rename',
+    hideGroup: 'Hide group',
     addNote: 'Add a note',
     editNote: 'Edit note',
     edit: 'Edit duration and energy',
@@ -70,6 +71,15 @@ export default {
   },
   rename: { title: 'Rename', placeholder: 'New name' },
   search: { placeholder: 'Search tasks or groups…', clear: 'Clear search' },
+  hidden: {
+    open: 'Hidden groups ({{n}})',
+    title: 'Hidden groups',
+    hint: 'A hidden group and every task in it is left out of the list, the day plan, Today and the report until you show it again.',
+    tasks: '{{n}} tasks',
+    show: 'Show again',
+    done: 'Hid the group “{{title}}”',
+    allHidden: 'Every group is hidden. Use “Hidden groups” to show one again.',
+  },
   jump: {
     open: 'Go to group…',
     title: 'Go to group',

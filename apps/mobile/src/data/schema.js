@@ -46,4 +46,8 @@ export const MIGRATIONS = [
   `
   ALTER TABLE tree_nodes ADD COLUMN note TEXT NOT NULL DEFAULT '';
   `,
+  // v5: groups the person put away (0 = shown).
+  `
+  ALTER TABLE tree_nodes ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0;
+  `,
 ];

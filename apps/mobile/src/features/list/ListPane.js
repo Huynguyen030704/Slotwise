@@ -15,9 +15,11 @@ import { useTranslation } from 'react-i18next';
 import {
   childrenOf,
   dropTargetAt,
+  hiddenGroups,
   isDone,
   isLeaf,
   leaves,
+  leavesUnder,
   liveNodes,
   progress,
   searchRows,
@@ -44,6 +46,7 @@ import { ActionsSheet } from './ActionsSheet';
 import { EditSheet } from './EditSheet';
 import { NoteSheet } from './NoteSheet';
 import { GroupJumpSheet } from './GroupJumpSheet';
+import { HiddenGroupsSheet } from './HiddenGroupsSheet';
 import { ListToolbar } from './ListToolbar';
 
 const EDGE = 64; // auto-scroll band at the top and bottom of the list
@@ -76,6 +79,7 @@ export function ListPane({ embedded = false }) {
   const [pinning, setPinning] = useState(/** @type {string | null} */ (null));
   const [query, setQuery] = useState('');
   const [jumpOpen, setJumpOpen] = useState(false);
+  const [hiddenOpen, setHiddenOpen] = useState(false);
   const [flashId, setFlashId] = useState(/** @type {string | null} */ (null));
   const pendingScroll = useRef(/** @type {string | null} */ (null));
   const [scrollTick, setScrollTick] = useState(0); // bumps when a scroll is requested
@@ -120,6 +124,16 @@ export function ListPane({ embedded = false }) {
   const groupInfo = useMemo(
     () => groups.map((g) => ({ id: g.id, title: g.title, ...progress(nodes, g) })),
     [groups, nodes],
+  );
+  // Groups the person put away: they are not in `nodes`, so list them from the full tree.
+  const hiddenInfo = useMemo(
+    () =>
+      hiddenGroups(api.allNodes).map((g) => ({
+        id: g.id,
+        title: g.title,
+        total: leavesUnder(api.allNodes, g).length,
+      })),
+    [api.allNodes],
   );
   // Groups and parent tasks that can be folded, and whether any is open right now.
   const { canCollapse, anyExpanded } = useMemo(() => {
@@ -365,7 +379,7 @@ export function ListPane({ embedded = false }) {
           if (id) focusNode(id);
         }}
       />
-      {nodes.length ? (
+      {nodes.length || hiddenInfo.length ? (
         <ListToolbar
           query={query}
           onQuery={setQuery}
@@ -377,6 +391,8 @@ export function ListPane({ embedded = false }) {
           onToggleAll={() => api.setAllCollapsed(anyExpanded)}
           groupCount={groups.length}
           onJump={() => setJumpOpen(true)}
+          hiddenCount={hiddenInfo.length}
+          onOpenHidden={() => setHiddenOpen(true)}
         />
       ) : null}
     </View>
@@ -452,6 +468,8 @@ export function ListPane({ embedded = false }) {
           ListEmptyComponent={
             searching ? (
               <AppText tone="muted">{t('list.searchNone', { q: query.trim() })}</AppText>
+            ) : !nodes.length && hiddenInfo.length ? (
+              <AppText tone="muted">{t('hidden.allHidden')}</AppText>
             ) : hideDone && doneCount ? (
               <AppText tone="muted">{t('list.allDoneHidden')}</AppText>
             ) : (
@@ -537,6 +555,16 @@ export function ListPane({ embedded = false }) {
         />
       </View>
 
+      <HiddenGroupsSheet
+        visible={hiddenOpen}
+        groups={hiddenInfo}
+        onShow={(id) => {
+          api.update(id, { hidden: false });
+          if (hiddenInfo.length <= 1) setHiddenOpen(false);
+          focusNode(id);
+        }}
+        onClose={() => setHiddenOpen(false)}
+      />
       <GroupJumpSheet
         visible={jumpOpen}
         groups={groupInfo}
@@ -554,6 +582,11 @@ export function ListPane({ embedded = false }) {
         onRename={() => setRenaming(menu)}
         onEdit={byClock ? () => setEditing(menu) : undefined}
         onNote={() => setNoting(menu)}
+        onHide={() => {
+          if (!menuNode) return;
+          api.update(menuNode.id, { hidden: true });
+          setSnack({ message: t('hidden.done', { title: menuNode.title }), undo: true });
+        }}
         onAddSubtask={() => setSubtaskOf(menu)}
         onMove={(dropTarget) => menu && api.move(menu, dropTarget)}
         onPin={byClock ? () => setPinning(menu) : undefined}

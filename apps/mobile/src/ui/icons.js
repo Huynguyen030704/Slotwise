@@ -59,3 +59,4 @@ export { default as X } from 'lucide-react-native/icons/x';
 export { default as ChevronsDownUp } from 'lucide-react-native/icons/chevrons-down-up';
 export { default as ChevronsUpDown } from 'lucide-react-native/icons/chevrons-up-down';
 export { default as FolderTree } from 'lucide-react-native/icons/folder-tree';
+export { default as Archive } from 'lucide-react-native/icons/archive';

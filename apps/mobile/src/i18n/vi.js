@@ -46,6 +46,7 @@ export default {
     done: 'Đánh dấu xong',
     undone: 'Bỏ đánh dấu xong',
     rename: 'Đổi tên',
+    hideGroup: 'Ẩn nhóm',
     addNote: 'Thêm ghi chú',
     editNote: 'Sửa ghi chú',
     edit: 'Sửa thời lượng và mức năng lượng',
@@ -70,6 +71,15 @@ export default {
   },
   rename: { title: 'Đổi tên', placeholder: 'Tên mới' },
   search: { placeholder: 'Tìm việc hoặc nhóm…', clear: 'Xóa tìm kiếm' },
+  hidden: {
+    open: 'Nhóm đã ẩn ({{n}})',
+    title: 'Nhóm đã ẩn',
+    hint: 'Nhóm đã ẩn và mọi việc trong đó không hiện ở danh sách, lịch, màn Hôm nay và báo cáo, cho tới khi bạn hiện lại.',
+    tasks: '{{n}} việc',
+    show: 'Hiện lại',
+    done: 'Đã ẩn nhóm “{{title}}”',
+    allHidden: 'Mọi nhóm đang được ẩn. Bấm “Nhóm đã ẩn” để hiện lại.',
+  },
   jump: {
     open: 'Đến nhóm…',
     title: 'Đến nhóm',

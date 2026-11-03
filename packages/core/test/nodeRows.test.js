@@ -22,6 +22,7 @@ const full = {
   createdAt: 'c',
   updatedAt: 'u',
   deletedAt: 'd',
+  hidden: true,
   note: 'Call the client first',
   fieldTimes: { title: '2026-10-22T01:00:00.000Z' },
 };
@@ -50,6 +51,7 @@ describe('node rows', () => {
       updatedAt: undefined,
       deletedAt: undefined,
       note: undefined,
+      hidden: undefined,
     });
     expect(row).toMatchObject({
       user_id: 'local',
@@ -58,6 +60,7 @@ describe('node rows', () => {
       updated_at: '',
       deleted_at: null,
       note: '',
+      hidden: 0,
     });
   });
 

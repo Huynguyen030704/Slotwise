@@ -273,4 +273,49 @@ describe('ListPane', () => {
       expect(screen.getByText('Soạn báo cáo tuần')).toBeTruthy();
     });
   });
+
+  describe('hiding a group', () => {
+    const two = () => [
+      node('g1', 'Nhóm A', { kind: 'group', scheduledDate: null, position: 'a' }),
+      node('a1', 'Việc của A', { parentId: 'g1', position: 'a' }),
+      node('g2', 'Nhóm B', { kind: 'group', scheduledDate: null, position: 'b' }),
+      node('b1', 'Việc của B', { parentId: 'g2', position: 'a' }),
+    ];
+
+    it('hides the group and its tasks, lists it under hidden groups, and brings it back', async () => {
+      await open(two());
+      await fireEvent.press(screen.getByRole('button', { name: /Thao tác với “Nhóm A”/ }));
+      await fireEvent.press(await screen.findByRole('button', { name: 'Ẩn nhóm' }));
+      await waitFor(() => expect(screen.queryByText('Việc của A')).toBeNull());
+      expect(screen.getByText('Việc của B')).toBeTruthy();
+      expect(db.__rows.get('g1').hidden).toBe(true);
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Nhóm đã ẩn (1)' }));
+      await fireEvent.press(await screen.findByRole('button', { name: 'Hiện lại' }));
+      await waitFor(() => expect(screen.getByText('Việc của A')).toBeTruthy());
+      expect(db.__rows.get('g1').hidden).toBe(false);
+    });
+
+    it('starts with a group hidden and does not offer its tasks in search or the group list', async () => {
+      await open(
+        two().map((n) =>
+          n.id === 'g1'
+            ? { ...n, hidden: true }
+            : n.id === 'a1'
+              ? { ...n, title: 'Hồ sơ riêng' }
+              : n,
+        ),
+      );
+      expect(screen.queryByText('Hồ sơ riêng')).toBeNull();
+      await fireEvent.changeText(screen.getByLabelText('Tìm việc hoặc nhóm…'), 'ho so rieng');
+      await waitFor(() => expect(screen.getByText(/Không có việc hay nhóm nào khớp/)).toBeTruthy());
+      expect(screen.queryByRole('button', { name: 'Đến nhóm…' })).toBeNull(); // only one visible group
+    });
+
+    it('says so when every group is hidden', async () => {
+      await open([node('g1', 'Nhóm A', { kind: 'group', scheduledDate: null, hidden: true })]);
+      expect(screen.getByText(/Mọi nhóm đang được ẩn/)).toBeTruthy();
+      expect(screen.queryByText('Bắt đầu bằng việc đầu tiên của bạn')).toBeNull();
+    });
+  });
 });

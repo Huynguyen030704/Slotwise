@@ -344,3 +344,36 @@ export function expandAncestors(nodes, id, now) {
   if (!open.size) return nodes;
   return nodes.map((n) => (open.has(n.id) ? { ...n, collapsed: false, updatedAt: now } : n));
 }
+
+/**
+ * Live groups the person has put away, in tree order.
+ * @param {TreeNode[]} nodes
+ * @returns {TreeNode[]}
+ */
+export function hiddenGroups(nodes) {
+  return childrenOf(nodes, null).filter((n) => n.kind === 'group' && n.hidden);
+}
+
+/**
+ * The tree without the hidden groups and everything under them. This is what every view works on,
+ * so a hidden group leaves the list, the day plan, the Today lists and the report in one go.
+ * @param {TreeNode[]} nodes
+ * @returns {TreeNode[]} the same array when nothing is hidden
+ */
+export function withoutHidden(nodes) {
+  const hidden = new Set(nodes.filter((n) => n.kind === 'group' && n.hidden).map((n) => n.id));
+  if (!hidden.size) return nodes;
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  /** @param {TreeNode} n */
+  const inHidden = (n) => {
+    for (
+      let cur = /** @type {TreeNode | undefined} */ (n);
+      cur;
+      cur = byId.get(cur.parentId ?? '')
+    ) {
+      if (hidden.has(cur.id)) return true;
+    }
+    return false;
+  };
+  return nodes.filter((n) => !inHidden(n));
+}

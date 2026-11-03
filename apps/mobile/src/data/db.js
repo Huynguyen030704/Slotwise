@@ -82,6 +82,7 @@ const COLS = [
   'updated_at',
   'deleted_at',
   'note',
+  'hidden',
   'field_times',
 ];
 

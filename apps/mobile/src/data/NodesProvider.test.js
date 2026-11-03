@@ -80,6 +80,24 @@ describe('NodesProvider', () => {
     expect(blank).toBeNull();
   });
 
+  it('leaves a hidden group and its tasks out of nodes but keeps them in allNodes', async () => {
+    const { result } = await setup();
+    let group;
+    await act(async () => {
+      group = result.current.addGroup('G');
+      result.current.addTask('A', group);
+      result.current.addTask('Loose', null);
+    });
+    expect(result.current.nodes).toHaveLength(3);
+    await act(async () => result.current.update(group, { hidden: true }));
+    expect(result.current.nodes.map((n) => n.title)).toEqual(['Loose']);
+    expect(result.current.allNodes).toHaveLength(3);
+    expect(db.__rows.get(group).hidden).toBe(true);
+    expect(result.current.nodes).not.toBe(result.current.allNodes);
+    await act(async () => result.current.undo());
+    expect(result.current.nodes).toHaveLength(3);
+  });
+
   it('collapses everything at once, and reveals a row inside a collapsed group', async () => {
     const { result } = await setup();
     let taskId;

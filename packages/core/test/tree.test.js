@@ -13,7 +13,9 @@ import {
   restore,
   setDone,
   softDelete,
+  hiddenGroups,
   visibleRows,
+  withoutHidden,
 } from '../src/tree.js';
 
 /**
@@ -350,5 +352,36 @@ describe('visibleRows with hideDone', () => {
   it('keeps a group even when every task in it is done', () => {
     const allDone = [node('g', { kind: 'group' }), node('x', { parentId: 'g', status: 'done' })];
     expect(ids(visibleRows(allDone, { hideDone: true }))).toEqual(['g']);
+  });
+});
+
+describe('hidden groups', () => {
+  const tree = [
+    node('g1', { kind: 'group', position: 'a' }),
+    node('a', { parentId: 'g1', position: 'a' }),
+    node('a1', { parentId: 'a', position: 'a' }),
+    node('g2', { kind: 'group', position: 'b', hidden: true }),
+    node('b', { parentId: 'g2', position: 'a' }),
+    node('b1', { parentId: 'b', position: 'a' }),
+    node('g3', { kind: 'group', position: 'c', hidden: true, deletedAt: 'd' }),
+    node('loose', { position: 'z' }),
+  ];
+
+  it('lists the live hidden groups in order', () => {
+    expect(hiddenGroups(tree).map((n) => n.id)).toEqual(['g2']);
+  });
+
+  it('drops a hidden group together with everything under it', () => {
+    expect(withoutHidden(tree).map((n) => n.id)).toEqual(['g1', 'a', 'a1', 'loose']);
+  });
+
+  it('returns the same array when nothing is hidden', () => {
+    const open = tree.map((n) => ({ ...n, hidden: false }));
+    expect(withoutHidden(open)).toBe(open);
+  });
+
+  it('does not treat a hidden flag on a task as hiding it', () => {
+    const odd = [node('t', { hidden: true })];
+    expect(withoutHidden(odd)).toBe(odd);
   });
 });
