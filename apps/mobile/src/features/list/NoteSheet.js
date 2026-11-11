@@ -63,8 +63,16 @@ export function NoteSheet({ node, onSave, onClose }) {
     onClose();
   };
 
+  // Tapping outside the sheet or going back keeps what was typed: it is saved when it differs from
+  // the stored note. Only the Cancel button throws the changes away.
+  const dismiss = () => {
+    const typed = text.trim();
+    if (node && typed !== (node.note ?? '').trim()) onSave(typed);
+    onClose();
+  };
+
   return (
-    <Sheet visible={!!node} title={t('note.title')} onClose={onClose}>
+    <Sheet visible={!!node} title={t('note.title')} onClose={dismiss}>
       <AppText tone="muted" size={13} numberOfLines={2}>
         {node?.title}
       </AppText>

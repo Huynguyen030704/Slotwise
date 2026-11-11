@@ -172,6 +172,33 @@ describe('ListPane', () => {
       await waitFor(() => expect(db.__rows.get('a').note).toBe('Hỏi lại kế toán'));
     });
 
+    it('keeps what was typed when the sheet is dismissed without pressing Save', async () => {
+      await open([node('a', 'Việc A')]);
+      await fireEvent.press(screen.getByRole('button', { name: /Thao tác với “Việc A”/ }));
+      await fireEvent.press(await screen.findByRole('button', { name: 'Thêm ghi chú' }));
+      await fireEvent.changeText(await screen.findByLabelText('Ghi chú'), 'Chưa kịp bấm Lưu');
+      await fireEvent.press(screen.getByRole('button', { name: 'close' })); // tap outside the sheet
+      await waitFor(() => expect(screen.getByText('Chưa kịp bấm Lưu')).toBeTruthy());
+      await waitFor(() => expect(db.__rows.get('a').note).toBe('Chưa kịp bấm Lưu'));
+    });
+
+    it('throws the changes away with Cancel, and does not rewrite an unchanged note', async () => {
+      await open([node('a', 'Việc A', { note: 'Bản cũ' })]);
+      await fireEvent.press(screen.getByRole('button', { name: /Sửa ghi chú của “Việc A”/ }));
+      await fireEvent.changeText(await screen.findByLabelText('Ghi chú'), 'Sửa dở');
+      await fireEvent.press(screen.getByRole('button', { name: 'Hủy' }));
+      await waitFor(() => expect(screen.queryByLabelText('Ghi chú')).toBeNull());
+      expect(screen.getByText('Bản cũ')).toBeTruthy();
+      expect(db.__rows.get('a').note).toBe('Bản cũ');
+
+      db.saveNodes.mockClear();
+      await fireEvent.press(screen.getByRole('button', { name: /Sửa ghi chú của “Việc A”/ }));
+      await screen.findByLabelText('Ghi chú');
+      await fireEvent.press(screen.getByRole('button', { name: 'close' }));
+      await waitFor(() => expect(screen.queryByLabelText('Ghi chú')).toBeNull());
+      expect(db.saveNodes).not.toHaveBeenCalled();
+    });
+
     it('edits and deletes an existing note', async () => {
       await open([node('a', 'Việc A', { note: 'Bản cũ' })]);
       await fireEvent.press(screen.getByRole('button', { name: /Sửa ghi chú của “Việc A”/ }));
